@@ -134,20 +134,5 @@ def join_segments(lines):
     return shapely.ops.linemerge(lines)
 
 
-def decimal_to_dms(decimal, direction):
-    degrees = int(decimal)
-    minutes = int((decimal - degrees) * 60)
-    seconds = round(((decimal - degrees) * 60 - minutes) * 60, 2)
-    return f"{direction}{degrees:03d}.{minutes:02d}.{seconds:06.3f}"
-
-
-def coord2es_old(tuple):
-    lat = decimal_to_dms(tuple[0], "N" if tuple[0] >= 0 else "S")
-    lon = decimal_to_dms(tuple[1], "E" if tuple[1] >= 1 else "W")
-    return f"{lat}:{lon}"
-
-
-def coord2es(tuple):
-    lat = tuple[0]
-    lon = tuple[1]
-    return f"{lat}:{lon}"
+def coord2es(coord):
+    return f"{coord[0]}:{coord[1]}"
