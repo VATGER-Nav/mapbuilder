@@ -6,8 +6,9 @@ from shapely import LineString, LinearRing, Point
 class KMLParser:
     result: Optional[Dict]
 
-    def __init__(self, file):
+    def __init__(self, file, root):
         self.result = None
+        self.root = root
         with open(file, "rb") as f:
             self.xml_root = xmltodict.parse(f)
 
@@ -27,7 +28,9 @@ class KMLParser:
         result = {}
         self.parse_recursively(self.xml_root["kml"]["Document"], result)
         self.result = result
-        return result
+        if self.root is not None and self.root in self.result:
+            self.result = self.result[self.root]
+        return self.result
 
     def parse_recursively(self, root, result):
         if "Folder" in root:
