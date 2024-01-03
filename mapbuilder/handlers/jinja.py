@@ -1,16 +1,25 @@
 from pathlib import Path
+from typing import List
 
+import numpy
 from jinja2 import Environment, FileSystemLoader
 import shapely, shapely.ops
-from pygeodesy import ellipsoidalVincenty as ev
+from shapely import Geometry, Polygon
+
+from mapbuilder.data.aixm2 import AIXMFeature
 
 
 class JinjaHandler:
     def handle(self, item: Path, data) -> str:
         file_loader = FileSystemLoader(item.parent)
         jinja_env = Environment(loader=file_loader)
-        jinja_env.globals.update(data=data)
+        jinja_env.globals.update(
+            data=data,
+            combine=combine,
+            geoms=geoms,
+        )
         jinja_env.filters.update(
+            geoms=geoms,
             simplify=simplify,
             to_line=to_line,
             to_coordline=to_coordline,
@@ -19,13 +28,49 @@ class JinjaHandler:
             filter_smaller_than=filter_smaller_than,
             envelope=envelope,
             to_text=to_text,
+            to_text_buffer=to_text_buffer,
+            to_symbol=to_symbol,
         )
 
         return jinja_env.get_template(item.name).render()
 
 
-def draw_ecl(threshold, length, bearing, fap, marker_style, markers):
-    pass
+def geoms(features: List[AIXMFeature] | AIXMFeature) -> List[Geometry]:
+    """Extracts the geometries from the given (list of) feature(s)"""
+    if isinstance(features, list):
+        result = [geometry for instance in features for geometry in instance.geometries]
+    else:
+        result = features.geometries
+
+    return result
+
+
+def combine(geometries: list[Geometry]) -> Geometry:
+    combined = shapely.ops.unary_union([Polygon(geo) for geo in geometries])
+    #combined = shapely.ops.unary_union(geometries)
+    #   return combined.exterior
+    return shapely.buffer(combined, 0.00000000000001)
+
+
+def to_text_buffer(geometry, label: str, color: str, adapt_to_length=True):
+    if isinstance(geometry, list):
+        point = geometry[0]
+    else:
+        point = geometry
+
+    if point is None:
+        return ""
+
+    lines = []
+    distance = 0.00008
+    labeltext, _, _ = label.partition("#")
+    if adapt_to_length:
+        distance += 0.00001 * len(labeltext)
+    buffer = shapely.buffer(point, distance).envelope.boundary
+
+    _render_polygon(lines, [buffer], color)
+
+    return "\n".join(lines)
 
 
 def to_text(geometry, label: str):
@@ -41,15 +86,50 @@ def to_text(geometry, label: str):
     return f"TEXT:{coord2es(point.coords[0])}:{labeltext}"
 
 
+def to_symbol(geometry, symbol):
+    if isinstance(geometry, list):
+        point = geometry[0]
+    else:
+        point = geometry
+
+    if point is None:
+        return ""
+
+    return f"SYMBOL:{symbol}:{coord2es(point.coords[0])}"
+
+
+def _get_geoms(thing):
+    """Extracts the geometries from either an AIXMFeature or geometry object"""
+    if isinstance(thing, list):
+        if len(thing) == 0:
+            return []
+
+        if isinstance(thing[0], AIXMFeature):
+            return [geometry for instance in thing for geometry in instance.geometries]
+        else:
+            return thing
+    elif isinstance(thing, AIXMFeature):
+        return thing.geometries
+    elif isinstance(thing, shapely.MultiLineString):
+        return thing.geoms
+    elif isinstance(thing, shapely.LineString):
+        return [thing]
+    elif isinstance(thing, shapely.LinearRing):
+        return [thing]
+    elif isinstance(thing, shapely.Polygon):
+        return [thing.exterior]
+    elif isinstance(thing, shapely.geometry.base.GeometrySequence):
+        return thing
+    elif isinstance(thing, numpy.ndarray):
+        return thing
+    else:
+        return []
+
+
 def to_line(geometries, designator: str):
     lines = [f"// {designator}"] if designator else []
 
-    if isinstance(geometries, list):
-        _render_linestring(lines, geometries)
-    elif isinstance(geometries, shapely.MultiLineString):
-        _render_linestring(lines, geometries.geoms)
-    elif isinstance(geometries, shapely.LineString):
-        _render_linestring(lines, [geometries])
+    _render_linestring(lines, _get_geoms(geometries))
 
     return "\n".join(lines)
 
@@ -57,12 +137,7 @@ def to_line(geometries, designator: str):
 def to_coordline(geometries, designator: str):
     lines = [f"// {designator}"] if designator else []
 
-    if isinstance(geometries, list):
-        _render_coords(lines, geometries)
-    elif isinstance(geometries, shapely.MultiLineString):
-        _render_coords(lines, geometries.geoms)
-    elif isinstance(geometries, shapely.LineString):
-        _render_coords(lines, [geometries])
+    _render_coords(lines, _get_geoms(geometries))
 
     lines.append("COORDLINE")
     lines.append("")
@@ -70,8 +145,9 @@ def to_coordline(geometries, designator: str):
 
 
 def filter_smaller_than(geometries, threshold):
-    if isinstance(geometries, list):
-        return list(filter(lambda geometry: geometry.envelope.area >= threshold, geometries))
+    geo = _get_geoms(geometries)
+    if isinstance(geo, list):
+        return list(filter(lambda geometry: geometry.envelope.area >= threshold, geo))
 
 
 def envelope(geometries):
@@ -81,10 +157,7 @@ def envelope(geometries):
 def to_poly(geometries, designator: str, color: str, coordpoly=False):
     lines = [f"// {designator}"] if designator else []
 
-    if isinstance(geometries, list):
-        _render_polygon(lines, geometries, color)
-    elif isinstance(geometries, shapely.LinearRing):
-        _render_polygon(lines, [geometries], color)
+    _render_polygon(lines, _get_geoms(geometries), color)
 
     if coordpoly:
         lines.append(f"COORDPOLY:{coordpoly}")
@@ -124,14 +197,15 @@ def _render_linestring(lines, linestring):
 
 
 def simplify(geometries, tolerance):
-    if isinstance(geometries, list):
-        return list(map(lambda geometry: shapely.simplify(geometry, tolerance), geometries))
+    geo = _get_geoms(geometries)
+    if isinstance(geo, list):
+        return list(map(lambda geometry: shapely.simplify(geometry, tolerance), geo))
     else:
-        return shapely.simplify(geometries, tolerance)
+        return shapely.simplify(geo, tolerance)
 
 
 def join_segments(lines):
-    return shapely.ops.linemerge(lines)
+    return shapely.ops.linemerge(_get_geoms(lines))
 
 
 def coord2es(coord):
