@@ -3,6 +3,7 @@ from pathlib import Path
 from datetime import datetime
 
 from .data.aixm import AIXMParser
+from .data.aixm2 import parse_aixm
 from .data.kml import KMLParser
 from .handlers.plaintext import PlainTextHandler
 from .handlers.jinja import JinjaHandler
@@ -20,11 +21,13 @@ class Builder:
         for data_source in config["data"].keys():
             if config["data"][data_source]["type"] == "aixm":
                 logging.debug(f"Loading AIXM source {data_source}...")
-                parser = AIXMParser(source_dir / config["data"][data_source]["source"])
-                self.data[data_source] = parser.parse()
+                self.data[data_source] = parse_aixm(source_dir / config["data"][data_source]["source"])
             elif config["data"][data_source]["type"] == "kml":
                 logging.debug(f"Loading KML source {data_source}...")
-                parser = KMLParser(source_dir / config["data"][data_source]["source"])
+                data_root = None
+                if "root" in config["data"][data_source]:
+                    data_root = config["data"][data_source]["root"]
+                parser = KMLParser(source_dir / config["data"][data_source]["source"], data_root)
                 self.data[data_source] = parser.parse()
             else:
                 logging.error(f"Unknown data source type for data source {data_source}")
