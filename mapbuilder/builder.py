@@ -2,7 +2,6 @@ import logging
 from pathlib import Path
 from datetime import datetime
 
-from .data.aixm import AIXMParser
 from .data.aixm2 import parse_aixm
 from .data.kml import KMLParser
 from .handlers.plaintext import PlainTextHandler
