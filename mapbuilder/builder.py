@@ -18,16 +18,21 @@ class Builder:
 
         self.data = {}
         for data_source in config["data"].keys():
-            if config["data"][data_source]["type"] == "aixm":
+            data_source_type = config["data"][data_source]["type"]
+            if data_source_type == "aixm":
                 logging.debug(f"Loading AIXM source {data_source}...")
                 self.data[data_source] = parse_aixm(source_dir / config["data"][data_source]["source"])
-            elif config["data"][data_source]["type"] == "kml":
+            elif data_source_type == "kml":
                 logging.debug(f"Loading KML source {data_source}...")
                 data_root = None
                 if "root" in config["data"][data_source]:
                     data_root = config["data"][data_source]["root"]
                 parser = KMLParser(source_dir / config["data"][data_source]["source"], data_root)
                 self.data[data_source] = parser.parse()
+            elif data_source_type == "raw":
+                logging.debug(f"Loading raw source {data_source}...")
+                with open(source_dir / config["data"][data_source]["source"], mode="r", encoding="iso-8859-1") as f:
+                    self.data[data_source] = f.read()
             else:
                 logging.error(f"Unknown data source type for data source {data_source}")
 
