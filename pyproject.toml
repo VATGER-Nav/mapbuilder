@@ -6,7 +6,7 @@ authors = ["Alex Legler <alex@a3li.li>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.11,<4.0"
 Jinja2 = "^3.1.2"
 shapely = "^2.0.2"
 more-itertools = "^10.1.0"
@@ -18,10 +18,12 @@ xmltodict = "^0.13.0"
 
 [tool.poetry.scripts]
 mapbuilder = 'mapbuilder.__main__:entry'
+build = "mapbuilder.pyinstaller:install"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "0.1.8"
 lxml-stubs = "^0.4.0"
+pyinstaller = "^6.3.0"
 
 [tool.ruff]
 line-length = 100

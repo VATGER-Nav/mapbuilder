@@ -29,6 +29,12 @@
           pygeodesy = prev.pygeodesy.overridePythonAttrs (old: {
             nativeBuildInputs = (old.nativeBuildInputs or []) ++ [final.setuptools];
           });
+          altgraph = prev.altgraph.overridePythonAttrs (old: {
+            nativeBuildInputs = (old.nativeBuildInputs or []) ++ [final.setuptools];
+          });
+          pyinstaller = prev.pyinstaller.overridePythonAttrs (old: {
+            buildInputs = (old.buildInputs or []) ++ [pkgs.zlib];
+          });
         });
         devEnv = poetry2nix.mkPoetryEnv {
           inherit overrides;

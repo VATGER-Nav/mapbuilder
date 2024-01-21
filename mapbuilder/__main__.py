@@ -8,7 +8,7 @@ import logging
 import tomllib
 from pathlib import Path
 
-from .builder import Builder
+from mapbuilder.builder import Builder
 
 
 def main(prog_name: str, *argv: str) -> int:
