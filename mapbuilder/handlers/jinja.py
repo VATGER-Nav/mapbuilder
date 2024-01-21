@@ -17,6 +17,7 @@ class JinjaHandler:
             data=data,
             combine=combine,
             geoms=geoms,
+            concat=concat,
         )
         jinja_env.filters.update(
             geoms=geoms,
@@ -47,9 +48,24 @@ def geoms(features: List[AIXMFeature] | AIXMFeature) -> List[Geometry]:
 
 def combine(geometries: list[Geometry]) -> Geometry:
     combined = shapely.ops.unary_union([Polygon(geo) for geo in geometries])
-    #combined = shapely.ops.unary_union(geometries)
+    # combined = shapely.ops.unary_union(geometries)
     #   return combined.exterior
     return shapely.buffer(combined, 0.00000000000001)
+
+
+def concat(base: dict, keys: list[str]) -> list:
+    """
+    Concatenates the given keys from a given base dict to a flat list
+    :param base: Common base dict for the keys
+    :param keys: keys to concatenate
+    :return: Flat list of concatenated values
+    """
+    result = []
+
+    for key in keys:
+        result.extend(base.get(key, []))
+
+    return result
 
 
 def to_text_buffer(geometry, label: str, color: str, adapt_to_length=True):
