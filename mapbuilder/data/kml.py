@@ -19,8 +19,8 @@ class KMLParser:
         geometries = []
 
         for part in parts:
-            raw_lon, raw_lat, _ = part.split(",")
-            geometries.append((float(raw_lat), float(raw_lon)))
+            raw_coord = part.split(",")
+            geometries.append((float(raw_coord[1]), float(raw_coord[0])))
 
         return geometries
 
