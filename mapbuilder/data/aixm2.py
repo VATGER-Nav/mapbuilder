@@ -127,13 +127,14 @@ def resolve_links(dataset):
         else:
             dataset['VerticalStructureByName'][structure_name].append(structure)
 
-    for _, marking in dataset['TaxiwayMarking'].items():
-        twy_desig = dataset['_Taxiway'][marking.marked_taxiway].designator
+    if 'TaxiwayMarking' in dataset:
+        for _, marking in dataset['TaxiwayMarking'].items():
+            twy_desig = dataset['_Taxiway'][marking.marked_taxiway].designator
 
-        if twy_desig not in dataset['TaxiwayMarkingByDesig']:
-            dataset['TaxiwayMarkingByDesig'][twy_desig] = [marking]
-        else:
-            dataset['TaxiwayMarkingByDesig'][twy_desig].append(marking)
+            if twy_desig not in dataset['TaxiwayMarkingByDesig']:
+                dataset['TaxiwayMarkingByDesig'][twy_desig] = [marking]
+            else:
+                dataset['TaxiwayMarkingByDesig'][twy_desig].append(marking)
 
 
 def parse_aixm(xml_file):
