@@ -15,6 +15,7 @@ lxml = "^5.1.0"
 fiona = "^1.9.6"
 pygeodesy = "^24.3.9"
 xmltodict = "^0.13.0"
+pydantic = "^2.6.4"
 
 [tool.poetry.scripts]
 mapbuilder = 'mapbuilder.__main__:entry'
