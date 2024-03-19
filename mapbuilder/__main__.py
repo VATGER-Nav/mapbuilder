@@ -40,7 +40,7 @@ def main(prog_name: str, *argv: str) -> int:
     with open(config_file, mode="rb") as cfh:
         config = tomllib.load(cfh)
 
-    pprint.pprint(config)
+    logging.debug(config)
     builder = Builder(args.source, args.target_dir, config)
     builder.build()
     return 0
