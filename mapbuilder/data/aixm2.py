@@ -28,19 +28,16 @@ AIXM_POLY_FEATURES = [
     "VerticalStructure",
     "WorkArea",
     "RunwayMarking",
-    "TaxiHoldingPositionMarking"
+    "TaxiHoldingPositionMarking",
 ]
 
-AIXM_LINE_FEATURES = [
-    "GuidanceLine",
-    "GuidanceLineMarking",
-    "TaxiwayMarking"
-]
+AIXM_LINE_FEATURES = ["GuidanceLine", "GuidanceLineMarking", "TaxiwayMarking"]
 
 
 @dataclass
 class AIXMFeature:
     """A feature extracted from AIXM data"""
+
     id: str
     feature: str
     geometries: List[Geometry]
@@ -103,38 +100,38 @@ def parse_pos_list(raw_geometry):
 def resolve_links(dataset):
     """Resolves apron and taxiway links"""
 
-    for _, apron_element in dataset['ApronElement'].items():
-        apron_name = dataset['_Apron'][apron_element.apron].name
+    for _, apron_element in dataset["ApronElement"].items():
+        apron_name = dataset["_Apron"][apron_element.apron].name
 
-        if apron_name not in dataset['ApronElementByApron']:
-            dataset['ApronElementByApron'][apron_name] = [apron_element]
+        if apron_name not in dataset["ApronElementByApron"]:
+            dataset["ApronElementByApron"][apron_name] = [apron_element]
         else:
-            dataset['ApronElementByApron'][apron_name].append(apron_element)
+            dataset["ApronElementByApron"][apron_name].append(apron_element)
 
-    for _, line in dataset['GuidanceLine'].items():
+    for _, line in dataset["GuidanceLine"].items():
         twy_designator = line.designator
 
-        if twy_designator not in dataset['GuidanceLineByDesig']:
-            dataset['GuidanceLineByDesig'][twy_designator] = [line]
+        if twy_designator not in dataset["GuidanceLineByDesig"]:
+            dataset["GuidanceLineByDesig"][twy_designator] = [line]
         else:
-            dataset['GuidanceLineByDesig'][twy_designator].append(line)
+            dataset["GuidanceLineByDesig"][twy_designator].append(line)
 
-    for _, structure in dataset['VerticalStructure'].items():
+    for _, structure in dataset["VerticalStructure"].items():
         structure_name = structure.name
 
-        if structure_name not in dataset['VerticalStructureByName']:
-            dataset['VerticalStructureByName'][structure_name] = [structure]
+        if structure_name not in dataset["VerticalStructureByName"]:
+            dataset["VerticalStructureByName"][structure_name] = [structure]
         else:
-            dataset['VerticalStructureByName'][structure_name].append(structure)
+            dataset["VerticalStructureByName"][structure_name].append(structure)
 
-    if 'TaxiwayMarking' in dataset:
-        for _, marking in dataset['TaxiwayMarking'].items():
-            twy_desig = dataset['_Taxiway'][marking.marked_taxiway].designator
+    if "TaxiwayMarking" in dataset:
+        for _, marking in dataset["TaxiwayMarking"].items():
+            twy_desig = dataset["_Taxiway"][marking.marked_taxiway].designator
 
-            if twy_desig not in dataset['TaxiwayMarkingByDesig']:
-                dataset['TaxiwayMarkingByDesig'][twy_desig] = [marking]
+            if twy_desig not in dataset["TaxiwayMarkingByDesig"]:
+                dataset["TaxiwayMarkingByDesig"][twy_desig] = [marking]
             else:
-                dataset['TaxiwayMarkingByDesig'][twy_desig].append(marking)
+                dataset["TaxiwayMarkingByDesig"][twy_desig].append(marking)
 
 
 def parse_aixm(xml_file):
@@ -144,72 +141,78 @@ def parse_aixm(xml_file):
         "GuidanceLineByDesig": {},
         "VerticalStructureByName": {},
         "TaxiwayMarkingByDesig": {},
-        "_Taxiway": {}
+        "_Taxiway": {},
     }
     context = etree.iterparse(xml_file)
 
     for action, elem in context:
         if elem.tag == APRON_TAG:
-            apn_id = elem.findtext('gml:identifier', namespaces=AIXM_NAMESPACES)
+            apn_id = elem.findtext("gml:identifier", namespaces=AIXM_NAMESPACES)
             result["_Apron"][apn_id] = AIXMApron(
                 id=apn_id,
-                name=elem.findtext('.//aixm:name', namespaces=AIXM_NAMESPACES),
-                surface=elem.findtext('.//aixm:composition', namespaces=AIXM_NAMESPACES),
-                abandoned=elem.findtext('.//aixm:abandoned', namespaces=AIXM_NAMESPACES) == 'YES'
+                name=elem.findtext(".//aixm:name", namespaces=AIXM_NAMESPACES),
+                surface=elem.findtext(".//aixm:composition", namespaces=AIXM_NAMESPACES),
+                abandoned=elem.findtext(".//aixm:abandoned", namespaces=AIXM_NAMESPACES) == "YES",
             )
 
             elem.clear()
         elif elem.tag == TAXIWAY_TAG:
-            twy_id = elem.findtext('gml:identifier', namespaces=AIXM_NAMESPACES)
+            twy_id = elem.findtext("gml:identifier", namespaces=AIXM_NAMESPACES)
             result["_Taxiway"][twy_id] = AIXMTaxiway(
                 id=twy_id,
-                designator=elem.findtext('.//aixm:designator', namespaces=AIXM_NAMESPACES),
-                type=elem.findtext('.//aixm:type', namespaces=AIXM_NAMESPACES),
-                width=elem.findtext('.//aixm:width', namespaces=AIXM_NAMESPACES),
-                surface=elem.findtext('.//aixm:composition', namespaces=AIXM_NAMESPACES),
-                abandoned=elem.findtext('.//aixm:abandoned', namespaces=AIXM_NAMESPACES) == 'YES'
+                designator=elem.findtext(".//aixm:designator", namespaces=AIXM_NAMESPACES),
+                type=elem.findtext(".//aixm:type", namespaces=AIXM_NAMESPACES),
+                width=elem.findtext(".//aixm:width", namespaces=AIXM_NAMESPACES),
+                surface=elem.findtext(".//aixm:composition", namespaces=AIXM_NAMESPACES),
+                abandoned=elem.findtext(".//aixm:abandoned", namespaces=AIXM_NAMESPACES) == "YES",
             )
 
             elem.clear()
         elif elem.tag in AIXM_TAGS:
-            feature_type = elem.tag.split('}')[1]
-            feature_id = elem.findtext('gml:identifier', namespaces=AIXM_NAMESPACES)
+            feature_type = elem.tag.split("}")[1]
+            feature_id = elem.findtext("gml:identifier", namespaces=AIXM_NAMESPACES)
             is_poly = elem.tag in AIXM_POLY_TAGS
 
             feature = AIXMFeature(
                 id=feature_id,
                 feature=feature_type,
-                type=elem.findtext('.//aixm:type', namespaces=AIXM_NAMESPACES),
-                name=elem.findtext('.//aixm:name', namespaces=AIXM_NAMESPACES),
-                designator=elem.findtext('.//aixm:designator', namespaces=AIXM_NAMESPACES),
-                color=elem.findtext('.//aixm:colour', namespaces=AIXM_NAMESPACES),
-                style=elem.findtext('.//aixm:style', namespaces=AIXM_NAMESPACES),
-                marking_location=elem.findtext('.//aixm:markingLocation', namespaces=AIXM_NAMESPACES),
+                type=elem.findtext(".//aixm:type", namespaces=AIXM_NAMESPACES),
+                name=elem.findtext(".//aixm:name", namespaces=AIXM_NAMESPACES),
+                designator=elem.findtext(".//aixm:designator", namespaces=AIXM_NAMESPACES),
+                color=elem.findtext(".//aixm:colour", namespaces=AIXM_NAMESPACES),
+                style=elem.findtext(".//aixm:style", namespaces=AIXM_NAMESPACES),
+                marking_location=elem.findtext(
+                    ".//aixm:markingLocation", namespaces=AIXM_NAMESPACES
+                ),
                 geometries=[],
-                geometry_type='poly' if is_poly else 'line'
+                geometry_type="poly" if is_poly else "line",
             )
 
-            if feature_type == 'ApronElement':
-                apron_link = elem.find('.//aixm:associatedApron', namespaces=AIXM_NAMESPACES)
+            if feature_type == "ApronElement":
+                apron_link = elem.find(".//aixm:associatedApron", namespaces=AIXM_NAMESPACES)
                 if apron_link is not None:
-                    feature.apron = apron_link.attrib[_ns('xlink', 'href')].replace('urn:uuid:', '')
+                    feature.apron = apron_link.attrib[_ns("xlink", "href")].replace("urn:uuid:", "")
 
-            if feature_type == 'TaxiwayMarking':
-                twy_link = elem.find('.//aixm:markedTaxiway', namespaces=AIXM_NAMESPACES)
+            if feature_type == "TaxiwayMarking":
+                twy_link = elem.find(".//aixm:markedTaxiway", namespaces=AIXM_NAMESPACES)
                 if twy_link is not None:
-                    feature.marked_taxiway = twy_link.attrib[_ns('xlink', 'href')].replace('urn:uuid:', '')
+                    feature.marked_taxiway = twy_link.attrib[_ns("xlink", "href")].replace(
+                        "urn:uuid:", ""
+                    )
 
-            if feature_type == 'TaxiwayElement':
-                twy_link = elem.find('.//aixm:associatedTaxiway', namespaces=AIXM_NAMESPACES)
+            if feature_type == "TaxiwayElement":
+                twy_link = elem.find(".//aixm:associatedTaxiway", namespaces=AIXM_NAMESPACES)
                 if twy_link is not None:
-                    feature.taxiway = twy_link.attrib[_ns('xlink', 'href')].replace('urn:uuid:', '')
+                    feature.taxiway = twy_link.attrib[_ns("xlink", "href")].replace("urn:uuid:", "")
 
-            if feature_type == 'GuidanceLineMarking':
-                twy_link = elem.find('.//aixm:markedGuidanceLine', namespaces=AIXM_NAMESPACES)
+            if feature_type == "GuidanceLineMarking":
+                twy_link = elem.find(".//aixm:markedGuidanceLine", namespaces=AIXM_NAMESPACES)
                 if twy_link is not None:
-                    feature.marked_guidance_line = twy_link.attrib[_ns('xlink', 'href')].replace('urn:uuid:', '')
+                    feature.marked_guidance_line = twy_link.attrib[_ns("xlink", "href")].replace(
+                        "urn:uuid:", ""
+                    )
 
-            for poslist_element in elem.findall('.//gml:posList', namespaces=AIXM_NAMESPACES):
+            for poslist_element in elem.findall(".//gml:posList", namespaces=AIXM_NAMESPACES):
                 poslist = parse_pos_list(poslist_element.text)
 
                 if is_poly and len(poslist) > 2:

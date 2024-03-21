@@ -1,1 +1,1 @@
-""" A compiler for GRPlugin layouts """
+"""A compiler for GRPlugin layouts"""
