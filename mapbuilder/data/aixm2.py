@@ -1,8 +1,7 @@
 from dataclasses import dataclass, field
-from typing import List, Optional
 
 from lxml import etree
-from shapely import LinearRing, LineString, Geometry
+from shapely import Geometry, LinearRing, LineString
 
 AIXM_NAMESPACES = {
     "gss": "http://www.isotc211.org/2005/gss",
@@ -40,18 +39,18 @@ class AIXMFeature:
 
     id: str
     feature: str
-    geometries: List[Geometry]
+    geometries: list[Geometry]
     geometry_type: str
-    type: Optional[str] = field(default=None)
-    name: Optional[str] = field(default=None)
-    style: Optional[str] = field(default=None)
-    color: Optional[str] = field(default=None)
-    designator: Optional[str] = field(default=None)
-    apron: Optional[str] = field(default=None)
-    taxiway: Optional[str] = field(default=None)
-    marked_taxiway: Optional[str] = field(default=None)
-    marking_location: Optional[str] = field(default=None)
-    marked_guidance_line: Optional[str] = field(default=None)
+    type: str | None = field(default=None)
+    name: str | None = field(default=None)
+    style: str | None = field(default=None)
+    color: str | None = field(default=None)
+    designator: str | None = field(default=None)
+    apron: str | None = field(default=None)
+    taxiway: str | None = field(default=None)
+    marked_taxiway: str | None = field(default=None)
+    marking_location: str | None = field(default=None)
+    marked_guidance_line: str | None = field(default=None)
 
 
 @dataclass
@@ -59,7 +58,7 @@ class AIXMApron:
     id: str
     name: str
     abandoned: bool
-    surface: Optional[str] = field(default=None)
+    surface: str | None = field(default=None)
 
 
 @dataclass
@@ -67,9 +66,9 @@ class AIXMTaxiway:
     id: str
     designator: str
     abandoned: bool
-    type: Optional[str] = field(default=None)
-    width: Optional[float] = field(default=None)
-    surface: Optional[str] = field(default=None)
+    type: str | None = field(default=None)
+    width: float | None = field(default=None)
+    surface: str | None = field(default=None)
 
 
 def _ns(ns: str, name: str) -> str:
@@ -145,7 +144,7 @@ def parse_aixm(xml_file):
     }
     context = etree.iterparse(xml_file)
 
-    for action, elem in context:
+    for _action, elem in context:
         if elem.tag == APRON_TAG:
             apn_id = elem.findtext("gml:identifier", namespaces=AIXM_NAMESPACES)
             result["_Apron"][apn_id] = AIXMApron(
@@ -182,7 +181,8 @@ def parse_aixm(xml_file):
                 color=elem.findtext(".//aixm:colour", namespaces=AIXM_NAMESPACES),
                 style=elem.findtext(".//aixm:style", namespaces=AIXM_NAMESPACES),
                 marking_location=elem.findtext(
-                    ".//aixm:markingLocation", namespaces=AIXM_NAMESPACES
+                    ".//aixm:markingLocation",
+                    namespaces=AIXM_NAMESPACES,
                 ),
                 geometries=[],
                 geometry_type="poly" if is_poly else "line",
@@ -197,7 +197,8 @@ def parse_aixm(xml_file):
                 twy_link = elem.find(".//aixm:markedTaxiway", namespaces=AIXM_NAMESPACES)
                 if twy_link is not None:
                     feature.marked_taxiway = twy_link.attrib[_ns("xlink", "href")].replace(
-                        "urn:uuid:", ""
+                        "urn:uuid:",
+                        "",
                     )
 
             if feature_type == "TaxiwayElement":
@@ -209,7 +210,8 @@ def parse_aixm(xml_file):
                 twy_link = elem.find(".//aixm:markedGuidanceLine", namespaces=AIXM_NAMESPACES)
                 if twy_link is not None:
                     feature.marked_guidance_line = twy_link.attrib[_ns("xlink", "href")].replace(
-                        "urn:uuid:", ""
+                        "urn:uuid:",
+                        "",
                     )
 
             for poslist_element in elem.findall(".//gml:posList", namespaces=AIXM_NAMESPACES):

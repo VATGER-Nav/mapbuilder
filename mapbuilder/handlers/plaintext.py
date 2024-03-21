@@ -1,4 +1,7 @@
+from pathlib import Path
+
+
 class PlainTextHandler:
-    def handle(self, item) -> str:
-        with open(item, mode="r", encoding="iso-8859-1") as input:
+    def handle(self, item: Path) -> str:
+        with item.open(encoding="iso-8859-1") as input:
             return input.read()

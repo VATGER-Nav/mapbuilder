@@ -1,9 +1,9 @@
 from pathlib import Path
-from typing import List
 
-import numpy
+import numpy as np
+import shapely
+import shapely.ops
 from jinja2 import Environment, FileSystemLoader
-import shapely, shapely.ops
 from shapely import Geometry, Polygon
 
 from mapbuilder.data.aixm2 import AIXMFeature
@@ -36,7 +36,7 @@ class JinjaHandler:
         return jinja_env.get_template(item.name).render()
 
 
-def geoms(features: List[AIXMFeature] | AIXMFeature) -> List[Geometry]:
+def geoms(features: list[AIXMFeature] | AIXMFeature) -> list[Geometry]:
     """Extracts the geometries from the given (list of) feature(s)"""
     if isinstance(features, list):
         result = [geometry for instance in features for geometry in instance.geometries]
@@ -69,10 +69,7 @@ def concat(base: dict, keys: list[str]) -> list:
 
 
 def to_text_buffer(geometry, label: str, color: str, adapt_to_length=True):
-    if isinstance(geometry, list):
-        point = geometry[0]
-    else:
-        point = geometry
+    point = geometry[0] if isinstance(geometry, list) else geometry
 
     if point is None:
         return ""
@@ -90,10 +87,7 @@ def to_text_buffer(geometry, label: str, color: str, adapt_to_length=True):
 
 
 def to_text(geometry, label: str):
-    if isinstance(geometry, list):
-        point = geometry[0]
-    else:
-        point = geometry
+    point = geometry[0] if isinstance(geometry, list) else geometry
 
     if point is None:
         return ""
@@ -103,10 +97,7 @@ def to_text(geometry, label: str):
 
 
 def to_symbol(geometry, symbol):
-    if isinstance(geometry, list):
-        point = geometry[0]
-    else:
-        point = geometry
+    point = geometry[0] if isinstance(geometry, list) else geometry
 
     if point is None:
         return ""
@@ -128,15 +119,11 @@ def _get_geoms(thing):
         return thing.geometries
     elif isinstance(thing, shapely.MultiLineString):
         return thing.geoms
-    elif isinstance(thing, shapely.LineString):
-        return [thing]
-    elif isinstance(thing, shapely.LinearRing):
+    elif isinstance(thing, shapely.LineString | shapely.LinearRing):
         return [thing]
     elif isinstance(thing, shapely.Polygon):
         return [thing.exterior]
-    elif isinstance(thing, shapely.geometry.base.GeometrySequence):
-        return thing
-    elif isinstance(thing, numpy.ndarray):
+    elif isinstance(thing, shapely.geometry.base.GeometrySequence | np.ndarray):
         return thing
     else:
         return []
@@ -155,8 +142,7 @@ def to_coordline(geometries, designator: str):
 
     _render_coords(lines, _get_geoms(geometries))
 
-    lines.append("COORDLINE")
-    lines.append("")
+    lines.extend(("COORDLINE", ""))
     return "\n".join(lines)
 
 
@@ -176,8 +162,7 @@ def to_poly(geometries, designator: str, color: str, coordpoly=False):
     _render_polygon(lines, _get_geoms(geometries), color)
 
     if coordpoly:
-        lines.append(f"COORDPOLY:{coordpoly}")
-        lines.append("")
+        lines.extend((f"COORDPOLY:{coordpoly}", ""))
 
     return "\n".join(lines)
 
@@ -207,7 +192,8 @@ def _render_linestring(lines, linestring):
                 break
 
             lines.append(
-                f"LINE:{coord2es((point[0], point[1]))}:{coord2es((geometry.coords[idx + 1][0], geometry.coords[idx + 1][1]))}"
+                f"LINE:{coord2es((point[0], point[1]))}"
+                f":{coord2es((geometry.coords[idx + 1][0], geometry.coords[idx + 1][1]))}",
             )
         lines.append("")
 
@@ -215,7 +201,7 @@ def _render_linestring(lines, linestring):
 def simplify(geometries, tolerance):
     geo = _get_geoms(geometries)
     if isinstance(geo, list):
-        return list(map(lambda geometry: shapely.simplify(geometry, tolerance), geo))
+        return [shapely.simplify(geometry, tolerance) for geometry in geo]
     else:
         return shapely.simplify(geo, tolerance)
 

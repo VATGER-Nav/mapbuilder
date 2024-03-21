@@ -1,15 +1,16 @@
-from typing import Dict, Optional
+from pathlib import Path
+
 import xmltodict
-from shapely import LineString, LinearRing, Point
+from shapely import LinearRing, LineString, Point
 
 
 class KMLParser:
-    result: Optional[Dict]
+    result: dict | None
 
-    def __init__(self, file, root):
+    def __init__(self, file: Path, root: str | None):
         self.result = None
         self.root = root
-        with open(file, "rb") as f:
+        with file.open("rb") as f:
             self.xml_root = xmltodict.parse(f)
 
     @staticmethod
@@ -46,13 +47,14 @@ class KMLParser:
                 elif "Polygon" in placemark:
                     geom = LinearRing(
                         self.parse_pos_list(
-                            placemark["Polygon"]["outerBoundaryIs"]["LinearRing"]["coordinates"]
-                        )
+                            placemark["Polygon"]["outerBoundaryIs"]["LinearRing"]["coordinates"],
+                        ),
                     )
                 elif "Point" in placemark:
                     geom = Point(self.parse_pos_list(placemark["Point"]["coordinates"]))
                 else:
-                    raise ValueError("Placemark {placemark} unknown")
+                    msg = f"Placemark {placemark} unknown"
+                    raise ValueError(msg)
 
                 name = placemark["name"]
                 if name not in result:

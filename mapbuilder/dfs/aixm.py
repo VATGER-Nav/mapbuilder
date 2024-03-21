@@ -1,8 +1,8 @@
 import logging
 from collections.abc import Iterator
+from urllib import request
 
 from mapbuilder.dfs.models import BaseItem, DFSDataset, GroupItem, LeafItem
-from urllib import request
 
 
 def get_dfs_aixm_datasets() -> dict[int, dict[str, LeafItem]]:
@@ -18,8 +18,8 @@ def get_dfs_aixm_datasets() -> dict[int, dict[str, LeafItem]]:
                 for ld in get_leaf_datasets(ds):
                     available_datasets[amdt_idx][ld.name] = ld
             logging.debug(f"Received {len(amdt.metadata.datasets)} AIXM datasets from DFS")
-    except ValueError as err:
-        logging.error(err)
+    except ValueError:
+        logging.exception("Cannot parse DFSDataset")
 
     return available_datasets
 
