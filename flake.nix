@@ -55,19 +55,40 @@
             packages.default = poetry2nix.mkPoetryApplication {
               inherit overrides;
               projectDir = ./.;
+              checkGroups = [];
+            };
+            packages.docker = pkgs.dockerTools.buildLayeredImage {
+              name = "ghcr.io/vatger-nav/mapbuilder";
+              tag = "latest";
+
+              contents = with pkgs; [
+                cacert
+                tzdata
+                self'.packages.default
+              ];
+
+              config = {
+                Env = [
+                  "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
+                  "PYTHONDONTWRITEBYTECODE=1"
+                  "PYTHONUNBUFFERED=1"
+                ];
+                WorkingDir = "/";
+                Entrypoint = [ "mapbuilder" ];
+              };
             };
             devShells.default = devEnv.env.overrideAttrs (attrs: {
-              nativeBuildInputs = attrs.nativeBuildInputs ++ [
-                pkgs.poetry
-                pkgs.nil
-                pkgs.pyright
-              ];
-              shellHook = ''
-                export PYTHONPATH=${devEnv}/${devEnv.sitePackages}
-              '';
-            });
-            formatter = pkgs.nixfmt-rfc-style;
-          };
+            nativeBuildInputs = attrs.nativeBuildInputs ++ [
+              pkgs.poetry
+              pkgs.nil
+              pkgs.pyright
+            ];
+            shellHook = ''
+              export PYTHONPATH=${devEnv}/${devEnv.sitePackages}
+            '';
+          });
+          formatter = pkgs.nixfmt-rfc-style;
+        };
       }
     );
 }

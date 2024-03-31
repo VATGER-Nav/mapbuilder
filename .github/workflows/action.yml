@@ -1,0 +1,34 @@
+name: Docker Action
+
+on:
+  pull_request:
+  push:
+    branches:
+      - action
+
+env:
+  CI_PROJECT_PATH: vatger-nav/mapbuilder
+
+jobs:
+  image:
+    name: Docker Image
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - name: Log in to the Container registry
+        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build Docker images
+        run: nix build -L .#docker
+      - name: Push Docker images
+        run: |
+          if [ "$GITHUB_EVENT_NAME" != "pull_request" ]; then
+            skopeo copy --insecure-policy docker-archive://$(readlink -f ./result) docker://ghcr.io/$CI_PROJECT_PATH:$GITHUB_SHA
+            skopeo copy --insecure-policy docker-archive://$(readlink -f ./result) docker://ghcr.io/$CI_PROJECT_PATH:$GITHUB_REF_NAME
+          fi
