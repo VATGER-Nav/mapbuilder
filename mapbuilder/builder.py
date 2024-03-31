@@ -2,8 +2,10 @@ import logging
 from datetime import UTC, datetime
 from pathlib import Path
 
+from .cache import Cache
 from .data.aixm2 import parse_aixm
 from .data.kml import KMLParser
+from .dfs import aixm
 from .handlers.jinja import JinjaHandler
 from .handlers.plaintext import PlainTextHandler
 
@@ -11,18 +13,20 @@ SUFFIXES = [".txt", ".jinja"]
 
 
 class Builder:
-    def __init__(self, source_dir, target_dir, config):
+    def __init__(self, source_dir, target_dir, cache_dir, config):
         self.source_dir = source_dir
         self.target_dir = target_dir
+        self.cache = Cache(cache_dir)
         self.config = config
 
         self.data = {}
+        self.dfs_datasets = None
         for data_source in config["data"]:
             data_source_type = config["data"][data_source]["type"]
             if data_source_type == "aixm":
                 logging.debug(f"Loading AIXM source {data_source}...")
-                self.data[data_source] = parse_aixm(
-                    source_dir / config["data"][data_source]["source"],
+                self.data[data_source] = self.__load_aixm(
+                    data_source, config["data"][data_source]["source"]
                 )
             elif data_source_type == "kml":
                 logging.debug(f"Loading KML source {data_source}...")
@@ -39,6 +43,24 @@ class Builder:
                     self.data[data_source] = f.read()
             else:
                 logging.error(f"Unknown data source type for data source {data_source}")
+
+    def __load_aixm(self, name: str, src: str):
+        if src.startswith("aixm:dfs"):
+            _, _, amdt, leaf = src.split(":")
+            amdt_id = int(amdt)
+
+            if self.dfs_datasets is None:
+                self.dfs_datasets = aixm.get_dfs_aixm_datasets(self.cache)
+
+            url = aixm.get_dfs_aixm_url(self.dfs_datasets[amdt_id], amdt_id, leaf)
+            if url is None:
+                logging.error(f"Cannot get AIXM source URL for dataset {name}")
+                return {}
+            return parse_aixm(self.cache.get(f"aixm-{name}", url, 96))
+        if src.startswith("http"):
+            return parse_aixm(self.cache.get(f"aixm-{name}", src, 96))
+        else:
+            return parse_aixm(self.source_dir / src)
 
     def build(self):
         for profile in self.config["profiles"]:

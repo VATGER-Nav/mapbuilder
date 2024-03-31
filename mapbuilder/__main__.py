@@ -22,6 +22,13 @@ def main(prog_name: str, *argv: str) -> int:
         default=Path(),
         help="Source directory (default: current directory)",
     )
+    argp.add_argument(
+        "-c",
+        "--cache",
+        type=Path,
+        default=None,
+        help="Cache directory for downloaded resources (default: .cache in target directory)"
+    )
     argp.add_argument("--debug", action="store_true", help="Enable debug output")
 
     args = argp.parse_args(argv)
@@ -39,8 +46,10 @@ def main(prog_name: str, *argv: str) -> int:
     with config_file.open(mode="rb") as cfh:
         config = tomllib.load(cfh)
 
+    cache = args.target_dir / ".cache" if args.cache is None else args.cache
+
     logging.debug(config)
-    builder = Builder(args.source, args.target_dir, config)
+    builder = Builder(args.source, args.target_dir, cache, config)
     builder.build()
     return 0
 
