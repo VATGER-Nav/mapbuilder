@@ -7,17 +7,31 @@ from jinja2 import Environment, FileSystemLoader
 from shapely import Geometry, Polygon
 
 from mapbuilder.data.aixm2 import AIXMFeature
+from mapbuilder.utils.ecl import draw_ecl_dashes, draw_loc_tick, draw_marker_ticks
+from mapbuilder.utils.geo import brg, fix
+from mapbuilder.utils.sidstar import render_sid
 
 
 class JinjaHandler:
-    def handle(self, item: Path, data) -> str:
+    def __init__(self, data, config):
+        self.data = data
+        self.config = config
+
+    def handle(self, item: Path) -> str:
         file_loader = FileSystemLoader(item.parent)
         jinja_env = Environment(loader=file_loader)
         jinja_env.globals.update(
-            data=data,
+            data=self.data,
+            runways=self.config["runways"],
             combine=combine,
             geoms=geoms,
             concat=concat,
+            ecl_dashes=draw_ecl_dashes,
+            marker_ticks=draw_marker_ticks,
+            loc_tick=draw_loc_tick,
+            render_sid=render_sid,
+            fix=fix,
+            brg=brg,
         )
         jinja_env.filters.update(
             geoms=geoms,

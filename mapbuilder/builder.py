@@ -5,6 +5,7 @@ from pathlib import Path
 from .cache import Cache
 from .data.aixm2 import parse_aixm
 from .data.kml import KMLParser
+from .data.sidstar import parse_sidstar
 from .dfs import aixm
 from .handlers.jinja import JinjaHandler
 from .handlers.plaintext import PlainTextHandler
@@ -41,8 +42,15 @@ class Builder:
                     encoding="iso-8859-1",
                 ) as f:
                     self.data[data_source] = f.read()
+            elif data_source_type == "ese":
+                logging.debug(f"Loading ESE source {data_source}...")
+                self.data[data_source] = {
+                    "SIDSTAR": parse_sidstar(source_dir / config["data"][data_source]["source"]),
+                }
             else:
                 logging.error(f"Unknown data source type for data source {data_source}")
+
+        self.jinja_handler = JinjaHandler(self.data, self.config)
 
     def __load_aixm(self, name: str, src: str):
         if src.startswith("aixm:dfs"):
@@ -85,7 +93,7 @@ class Builder:
         if item.suffix == ".txt":
             return PlainTextHandler().handle(item)
         elif item.suffix == ".jinja":
-            return JinjaHandler().handle(item, self.data)
+            return self.jinja_handler.handle(item)
         else:
             logging.warning(f"No handler for file type {item.suffix} known. Skipping.")
             return None
