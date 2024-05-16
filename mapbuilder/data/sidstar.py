@@ -3,7 +3,7 @@ from pathlib import Path
 
 
 def parse_sidstar(file_path: Path) -> dict:
-    pattern = r"^(SID|STAR):(\w{4}):(\d\d\w?):(\w+):(.*?)\s?;"
+    pattern = r"^(SID|STAR):(\w{4}):(\d\d\w?):(\w+):(.*?)(?:$|\s?;)"
 
     procs = {"SID": {}, "STAR": {}}
     in_section = False
