@@ -74,15 +74,27 @@ class Fix:
     def move_to(self, dist: float, bearing: float | Brg) -> "Fix":
         return Fix(self.fix.destination(dist * NM_IN_METERS, _brg(bearing)), self.lines)
 
+    def move_to_fix(self, fix: "Fix") -> "Fix":
+        return Fix(fix.fix, self.lines)
+
     def line_to(self, dist: float, bearing: float | Brg) -> "Fix":
         dest = self.fix.destination(dist * NM_IN_METERS, _brg(bearing))
         self.lines.append(f"LINE:{coord2es(self.fix)}:{coord2es(dest)}")
+        return Fix(self.fix, self.lines)
+
+    def line_to_fix(self, fix: "Fix") -> "Fix":
+        self.lines.append(f"LINE:{coord2es(self.fix)}:{coord2es(fix.fix)}")
         return Fix(self.fix, self.lines)
 
     def line_move_to(self, dist: float, bearing: float | Brg) -> "Fix":
         dest = self.fix.destination(dist * NM_IN_METERS, _brg(bearing))
         self.lines.append(f"LINE:{coord2es(self.fix)}:{coord2es(dest)}")
         self.fix = dest
+        return Fix(self.fix, self.lines)
+
+    def line_move_to_fix(self, fix: "Fix") -> "Fix":
+        self.lines.append(f"LINE:{coord2es(self.fix)}:{coord2es(fix.fix)}")
+        self.fix = fix.fix
         return Fix(self.fix, self.lines)
 
     def __str__(self):
