@@ -130,7 +130,7 @@ class Builder:
         ) as tgt_file:
             tgt_file.write(profile_content)
 
-        logging.info("complete.")
+        logging.info(f"Built {map_id}.")
 
     def build_visitor(self, profile_id, rootdir, profile_contents):
         # Possibly inefficient, but we do not have a large number of files (hopefully)
