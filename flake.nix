@@ -15,12 +15,7 @@
   outputs =
     inputs@{ flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } (
-      {
-        inputs,
-        lib,
-        withSystem,
-        ...
-      }:
+      { inputs, ... }:
       {
         systems = [
           "x86_64-linux"
@@ -28,12 +23,7 @@
         ];
 
         perSystem =
-          {
-            pkgs,
-            system,
-            self',
-            ...
-          }:
+          { pkgs, self', ... }:
           let
             poetry2nix = import inputs.poetry2nix { inherit pkgs; };
             overrides = poetry2nix.overrides.withDefaults (
@@ -52,43 +42,47 @@
             };
           in
           {
-            packages.default = poetry2nix.mkPoetryApplication {
-              inherit overrides;
-              projectDir = ./.;
-              checkGroups = [];
-            };
-            packages.docker = pkgs.dockerTools.buildLayeredImage {
-              name = "ghcr.io/vatger-nav/mapbuilder";
-              tag = "latest";
+            packages = {
+              default = poetry2nix.mkPoetryApplication {
+                inherit overrides;
+                projectDir = ./.;
+                checkGroups = [ ];
+              };
 
-              contents = with pkgs; [
-                cacert
-                tzdata
-                self'.packages.default
-              ];
+              docker = pkgs.dockerTools.buildLayeredImage {
+                name = "ghcr.io/vatger-nav/mapbuilder";
+                tag = "latest";
 
-              config = {
-                Env = [
-                  "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
-                  "PYTHONDONTWRITEBYTECODE=1"
-                  "PYTHONUNBUFFERED=1"
+                contents = [
+                  pkgs.cacert
+                  pkgs.tzdata
+                  self'.packages.default
                 ];
-                WorkingDir = "/";
-                Entrypoint = [ "mapbuilder" ];
+
+                config = {
+                  Env = [
+                    "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
+                    "PYTHONDONTWRITEBYTECODE=1"
+                    "PYTHONUNBUFFERED=1"
+                  ];
+                  WorkingDir = "/";
+                  Entrypoint = [ "mapbuilder" ];
+                };
               };
             };
+
             devShells.default = devEnv.env.overrideAttrs (attrs: {
-            nativeBuildInputs = attrs.nativeBuildInputs ++ [
-              pkgs.poetry
-              pkgs.nil
-              pkgs.pyright
-            ];
-            shellHook = ''
-              export PYTHONPATH=${devEnv}/${devEnv.sitePackages}
-            '';
-          });
-          formatter = pkgs.nixfmt-rfc-style;
-        };
+              nativeBuildInputs = attrs.nativeBuildInputs ++ [
+                pkgs.poetry
+                pkgs.pyright
+              ];
+              shellHook = ''
+                export PYTHONPATH=${devEnv}/${devEnv.sitePackages}
+              '';
+            });
+
+            formatter = pkgs.nixfmt-rfc-style;
+          };
       }
     );
 }
