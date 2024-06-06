@@ -1,5 +1,6 @@
 import logging
 import re
+import shutil
 import tempfile
 import time
 import zipfile
@@ -47,7 +48,7 @@ class Cache:
                 with tempfile.TemporaryDirectory() as tempdir:
                     logging.debug(f"Extracting {file_list[0]} to temporary dir {tempdir}")
                     zip_file.extract(file_list[0], tempdir)
-                    (Path(tempdir) / file_list[0]).rename(target_file)
+                    shutil.move(Path(tempdir) / file_list[0], target_file)
         else:
             with target_file.open("wb") as f:
                 f.write(content.getbuffer())
