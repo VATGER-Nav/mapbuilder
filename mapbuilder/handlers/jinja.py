@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import re
+import logging
 import numpy as np
 import shapely
 import shapely.ops
@@ -81,7 +83,6 @@ def concat(base: dict, keys: list[str]) -> list:
 
     return result
 
-
 def to_text_buffer(geometry, label: str, color: str, adapt_to_length=True):
     point = geometry[0] if isinstance(geometry, list) else geometry
 
@@ -97,6 +98,9 @@ def to_text_buffer(geometry, label: str, color: str, adapt_to_length=True):
 
     _render_polygon(lines, [buffer], color)
 
+    for i in range(len(lines)):
+        lines[i] = lines[i].replace("COLOR", "\nCOLOR")
+
     return "\n".join(lines)
 
 
@@ -107,7 +111,7 @@ def to_text(geometry, label: str):
         return ""
 
     labeltext, _, _ = label.partition("#")
-    return f"TEXT:{coord2es(point.coords[0])}:{labeltext}"
+    return f"TEXT:{coord2es(point.coords[0])}:{labeltext}\n"
 
 
 def to_symbol(geometry, symbol):
@@ -173,20 +177,20 @@ def envelope(geometries):
 def to_poly(geometries, designator: str, color: str, coordpoly=False):
     lines = [f"// {designator}"] if designator else []
 
-    _render_polygon(lines, _get_geoms(geometries), color)
-
-    if coordpoly:
-        lines.extend((f"COORDPOLY:{coordpoly}", ""))
+    _render_polygon(lines, _get_geoms(geometries), color, coordpoly)
 
     return "\n".join(lines)
 
 
-def _render_polygon(lines, polygons, color):
+def _render_polygon(lines, polygons, color, coordpoly=False):
     for polygon in polygons:
         lines.append(f"COLOR:{color}")
 
         for point in polygon.coords:
             lines.append(f"COORD:{coord2es((point[0], point[1]))}")
+        
+        if coordpoly:
+            lines.extend((f"COORDPOLY:{coordpoly}", ""))
 
 
 def _render_coords(lines, linestring):
