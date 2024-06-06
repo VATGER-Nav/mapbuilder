@@ -4,7 +4,7 @@ author: 'vatger-nav'
 description: 'Builder for GRPlugin and Topsky maps'
 runs:
   using: 'docker'
-  image: 'docker://ghcr.io/vatger-nav/mapbuilder:action'
+  image: 'docker://ghcr.io/vatger-nav/mapbuilder:main'
   args:
     - '--debug'
     - '-s'

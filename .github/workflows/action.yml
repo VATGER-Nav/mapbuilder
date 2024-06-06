@@ -4,7 +4,7 @@ on:
   pull_request:
   push:
     branches:
-      - action
+      - main
 
 env:
   CI_PROJECT_PATH: vatger-nav/mapbuilder
