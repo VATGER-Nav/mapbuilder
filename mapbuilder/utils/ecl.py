@@ -1,4 +1,3 @@
-
 from mapbuilder.utils.geo import Brg, Fix, back_bearing
 
 
@@ -41,7 +40,9 @@ def draw_marker_ticks(rwy_info, at: list, gap: float, length: float):
     for dist in at:
         base = Fix(rwy_info["thr"]).move_to(dist, brg)
 
-        lines.extend((str(base.move_to(gap, tick_brg).line_to(length, tick_brg)),
-                      str(base.move_to(-gap, tick_brg).line_to(-length, tick_brg))))
+        lines.extend((
+            str(base.move_to(gap, tick_brg).line_to(length, tick_brg)),
+            str(base.move_to(-gap, tick_brg).line_to(-length, tick_brg)),
+        ))
 
     return "\n".join(lines)

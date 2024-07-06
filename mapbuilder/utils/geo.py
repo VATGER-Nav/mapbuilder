@@ -44,7 +44,7 @@ class Brg:
         return self.adjust(-other)
 
 
-def _brg(bearing: float | int | Brg) -> float:
+def _brg(bearing: float | Brg) -> float:
     if isinstance(bearing, float | int):
         return bearing
     else:

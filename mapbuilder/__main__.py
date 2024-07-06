@@ -27,7 +27,7 @@ def main(prog_name: str, *argv: str) -> int:
         "--cache",
         type=Path,
         default=None,
-        help="Cache directory for downloaded resources (default: .cache in target directory)"
+        help="Cache directory for downloaded resources (default: .cache in target directory)",
     )
     argp.add_argument("--debug", action="store_true", help="Enable debug output")
 
