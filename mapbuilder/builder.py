@@ -5,6 +5,7 @@ from pathlib import Path
 from .cache import Cache
 from .data.aixm2 import parse_aixm
 from .data.kml import KMLParser
+from .data.rwy import parse_runway
 from .data.sidstar import parse_sidstar
 from .dfs import aixm
 from .handlers.jinja import JinjaHandler
@@ -34,7 +35,9 @@ class Builder:
                 data_root = None
                 if "root" in config["data"][data_source]:
                     data_root = config["data"][data_source]["root"]
-                parser = KMLParser(source_dir / config["data"][data_source]["source"], data_root)
+                parser = KMLParser(
+                    source_dir / config["data"][data_source]["source"], data_root
+                )
                 self.data[data_source] = parser.parse()
             elif data_source_type == "raw":
                 logging.debug(f"Loading raw source {data_source}...")
@@ -45,7 +48,16 @@ class Builder:
             elif data_source_type == "ese":
                 logging.debug(f"Loading ESE source {data_source}...")
                 self.data[data_source] = {
-                    "SIDSTAR": parse_sidstar(source_dir / config["data"][data_source]["source"]),
+                    "SIDSTAR": parse_sidstar(
+                        source_dir / config["data"][data_source]["source"]
+                    ),
+                }
+            elif data_source_type == "sct":
+                logging.debug(f"Loading SCT source {data_source}...")
+                self.data[data_source] = {
+                    "RUNWAY": parse_runway(
+                        source_dir / config["data"][data_source]["source"]
+                    ),
                 }
             else:
                 logging.error(f"Unknown data source type for data source {data_source}")

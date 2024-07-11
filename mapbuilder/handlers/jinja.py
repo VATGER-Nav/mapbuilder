@@ -7,6 +7,7 @@ from jinja2 import Environment, FileSystemLoader
 from shapely import Geometry, Polygon
 
 from mapbuilder.data.aixm2 import AIXMFeature
+from mapbuilder.utils.ad import render_cl, render_runways
 from mapbuilder.utils.ecl import draw_ecl_dashes, draw_loc_tick, draw_marker_ticks
 from mapbuilder.utils.geo import brg, fix
 from mapbuilder.utils.sidstar import render_sid
@@ -32,6 +33,8 @@ class JinjaHandler:
             render_sid=render_sid,
             fix=fix,
             brg=brg,
+            render_runways=render_runways,
+            render_cl=render_cl,
         )
         jinja_env.filters.update(
             geoms=geoms,
@@ -170,7 +173,7 @@ def envelope(geometries):
     return shapely.envelope(geometries)
 
 
-def to_poly(geometries, designator: str, color: str, coordpoly=False):
+def to_poly(geometries, designator: str, color: str | None = None, coordpoly=False):
     lines = [f"// {designator}"] if designator else []
 
     _render_polygon(lines, _get_geoms(geometries), color)
@@ -181,9 +184,12 @@ def to_poly(geometries, designator: str, color: str, coordpoly=False):
     return "\n".join(lines)
 
 
-def _render_polygon(lines, polygons, color):
+def _render_polygon(lines, polygons, color=None):
     for polygon in polygons:
-        lines.append(f"COLOR:{color}")
+        if color is not None:
+            lines.append(f"COLOR:{color}")
+        else:
+            lines.append("")
 
         for point in polygon.coords:
             lines.append(f"COORD:{coord2es((point[0], point[1]))}")
