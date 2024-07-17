@@ -27,13 +27,16 @@ class KMLParser:
 
     def parse(self):
         result = {}
-        self.parse_recursively(self.xml_root["kml"]["Document"], result)
+        self.parse_recursively(self.xml_root["kml"], result)
         self.result = result
         if self.root is not None and self.root in self.result:
             self.result = self.result[self.root]
         return self.result
 
     def parse_recursively(self, root, result):
+        if "Document" in root:
+            self.parse_recursively(root["Document"], result)
+
         if "Folder" in root:
             for folder in ensure_list(root["Folder"]):
                 name = folder["name"]
