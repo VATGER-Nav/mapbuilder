@@ -51,6 +51,11 @@ class JinjaHandler:
             to_text=to_text,
             to_text_buffer=to_text_buffer,
             to_symbol=to_symbol,
+            to_multipoly=to_multipoly,
+            to_multiline=to_multiline,
+            to_multicoordline=to_multicoordline,
+            to_multisymbol=to_multisymbol,
+            to_multitext=to_multitext,
         )
 
         return jinja_env.get_template(item.name).render()
@@ -115,6 +120,20 @@ def to_text(geometry, label: str):
     labeltext, _, _ = label.partition("#")
     return f"TEXT:{coord2es(point.coords[0])}:{labeltext}"
 
+def to_multitext(geometries, label: str):
+    lines = []
+    labeltext, _, _ = label.partition("#")
+
+    for geometry in geometries:
+        for point in geometry:
+            if point is None:
+                lines.append("")
+                continue
+
+            lines.append(f"TEXT:{coord2es(point.coords[0])}:{labeltext}")
+
+    return "\n".join(lines)
+
 
 def to_symbol(geometry, symbol):
     point = geometry[0] if isinstance(geometry, list) else geometry
@@ -123,6 +142,19 @@ def to_symbol(geometry, symbol):
         return ""
 
     return f"SYMBOL:{symbol}:{coord2es(point.coords[0])}"
+
+def to_multisymbol(geometries, symbol):
+    lines = []
+
+    for geometry in geometries:
+        for point in geometry:
+            if point is None:
+                lines.append("")
+                continue
+
+            lines.append(f"SYMBOL:{symbol}:{coord2es(point.coords[0])}")
+
+    return "\n".join(lines)
 
 
 def _get_geoms(thing):
@@ -157,12 +189,34 @@ def to_line(geometries, designator: str):
     return "\n".join(lines)
 
 
+def to_multiline(geometries, designator: str):
+    lines = [f"// {designator}"] if designator else []
+
+    for geometry in geometries:
+        for linestring in geometry:
+            _render_linestring(lines, _get_geoms(linestring))
+
+    return "\n".join(lines)
+
+
 def to_coordline(geometries, designator: str):
     lines = [f"// {designator}"] if designator else []
 
     _render_coords(lines, _get_geoms(geometries))
 
     lines.extend(("COORDLINE", ""))
+    return "\n".join(lines)
+
+
+def to_multicoordline(geometries, designator: str):
+    lines = [f"// {designator}"] if designator else []
+
+    for geometry in geometries:
+        for linestring in geometry:
+            _render_coords(lines, _get_geoms(linestring))
+
+            lines.extend(("COORDLINE", ""))
+    
     return "\n".join(lines)
 
 
@@ -183,6 +237,18 @@ def to_poly(geometries, designator: str, color: str | None = None, coordpoly=Fal
 
     if coordpoly:
         lines.extend((f"COORDPOLY:{coordpoly}", ""))
+
+    return "\n".join(lines)
+
+def to_multipoly(geometries, designator: str, color: str | None = None, coordpoly=False):
+    lines = [f"// {designator}"] if designator else []
+
+    for geometry in geometries:
+        for polygon in geometry:
+            _render_polygon(lines, _get_geoms(polygon), color)
+
+            if coordpoly:
+                lines.append(f"COORDPOLY:{coordpoly}")
 
     return "\n".join(lines)
 
