@@ -1,9 +1,11 @@
+from itertools import chain
 from pathlib import Path
 
 import numpy as np
 import shapely
 import shapely.ops
 from jinja2 import Environment, FileSystemLoader
+from more_itertools import unique_everseen
 from shapely import Geometry, Polygon
 
 from mapbuilder.data.aixm2 import AIXMFeature
@@ -35,6 +37,7 @@ class JinjaHandler:
             brg=brg,
             render_runways=render_runways,
             render_cl=render_cl,
+            render_sectorlines=render_sectorlines,
         )
         jinja_env.filters.update(
             geoms=geoms,
@@ -232,3 +235,8 @@ def join_segments(lines):
 
 def coord2es(coord):
     return f"{coord[0]}:{coord[1]}"
+
+
+def render_sectorlines(*lines):
+    unique_lines = list(unique_everseen(chain(*lines)))
+    return "\n".join(map(str, unique_lines))

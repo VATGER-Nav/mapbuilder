@@ -6,6 +6,7 @@ from .cache import Cache
 from .data.aixm2 import parse_aixm
 from .data.kml import KMLParser
 from .data.rwy import parse_runway
+from .data.sectors import parse_sectors, sectors_to_lines
 from .data.sidstar import parse_sidstar
 from .dfs import aixm
 from .handlers.jinja import JinjaHandler
@@ -42,7 +43,7 @@ class Builder:
             elif data_source_type == "raw":
                 logging.debug(f"Loading raw source {data_source}...")
                 with (source_dir / config["data"][data_source]["source"]).open(
-                    encoding="iso-8859-1",
+                        encoding="iso-8859-1",
                 ) as f:
                     self.data[data_source] = f.read()
             elif data_source_type == "ese":
@@ -58,6 +59,13 @@ class Builder:
                     "RUNWAY": parse_runway(
                         source_dir / config["data"][data_source]["source"]
                     ),
+                }
+            elif data_source_type == "sectors":
+                logging.debug(f"Loading sectors source {data_source}...")
+                fixes = parse_sectors(source_dir / config["data"][data_source]["source"])
+                self.data[data_source] = {
+                    "fixes": fixes,
+                    "lines": sectors_to_lines(fixes),
                 }
             else:
                 logging.error(f"Unknown data source type for data source {data_source}")
@@ -137,8 +145,8 @@ class Builder:
         profile_content = "\n\n".join(profile_contents)
 
         with (self.target_dir / Path(target_file)).open(
-            mode="w",
-            encoding="iso-8859-1",
+                mode="w",
+                encoding="iso-8859-1",
         ) as tgt_file:
             tgt_file.write(profile_content)
 

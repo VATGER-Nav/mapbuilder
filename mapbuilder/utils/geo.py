@@ -102,3 +102,16 @@ class Fix:
 
     def __copy__(self):
         return Fix(self.coords, self.lines)
+
+
+class Line:
+    def __init__(self, a, b):
+        self.a = a
+        self.b = b
+
+    def __eq__(self, other):
+        return ((self.a == other.a and self.b == other.b)
+                or (self.a == other.b and self.b == other.a))
+
+    def __str__(self):
+        return f"LINE:{coord2es(self.a)}:{coord2es(self.b)}"
