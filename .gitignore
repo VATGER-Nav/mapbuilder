@@ -7,8 +7,3 @@ __pycache__/
 /.direnv
 /.ruff_cache
 /result*
-/aixm
-/kml
-/maps
-mapbuilder.toml
-/grp
