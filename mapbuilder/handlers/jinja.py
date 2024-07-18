@@ -305,11 +305,10 @@ def simplify(geometries, tolerance):
 
 
 def join_segments(geometries):
-    geo = _get_geoms(geometries)
-    if isinstance(geo, list):
-        return [shapely.ops.linemerge(_get_geoms(geometry)) for geometry in geo]
+    if isinstance(geometries, list):
+        return [shapely.ops.linemerge(_get_geoms(geometry)) for geometry in geometries]
     else:
-        return shapely.ops.linemerge(_get_geoms(geo))
+        return shapely.ops.linemerge(_get_geoms(geometries))
 
 
 def coord2es(coord):
