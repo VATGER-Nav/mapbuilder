@@ -6,7 +6,7 @@ import shapely
 import shapely.ops
 from jinja2 import Environment, FileSystemLoader
 from more_itertools import unique_everseen
-from shapely import Geometry, Polygon
+from shapely import MultiLineString, Geometry, Polygon
 
 from mapbuilder.data.aixm2 import AIXMFeature
 from mapbuilder.utils.ad import render_cl, render_runways
@@ -193,6 +193,10 @@ def to_multiline(geometries, designator: str):
     lines = [f"// {designator}"] if designator else []
 
     for geometry in geometries:
+        if isinstance(geometry, MultiLineString):
+            _render_linestring(lines, _get_geoms(geometry))
+            continue
+
         for linestring in geometry:
             _render_linestring(lines, _get_geoms(linestring))
 
@@ -212,6 +216,11 @@ def to_multicoordline(geometries, designator: str):
     lines = [f"// {designator}"] if designator else []
 
     for geometry in geometries:
+        if isinstance(geometry, MultiLineString):
+            _render_linestring(lines, _get_geoms(geometry))
+            lines.extend(("COORDLINE", ""))
+            continue
+
         for linestring in geometry:
             _render_coords(lines, _get_geoms(linestring))
 
@@ -295,8 +304,12 @@ def simplify(geometries, tolerance):
         return shapely.simplify(geo, tolerance)
 
 
-def join_segments(lines):
-    return shapely.ops.linemerge(_get_geoms(lines))
+def join_segments(geometries):
+    geo = _get_geoms(geometries)
+    if isinstance(geo, list):
+        return [shapely.ops.linemerge(_get_geoms(geometry)) for geometry in geo]
+    else:
+        return shapely.ops.linemerge(_get_geoms(geo))
 
 
 def coord2es(coord):
