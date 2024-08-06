@@ -38,6 +38,8 @@ class JinjaHandler:
             render_runways=render_runways,
             render_cl=render_cl,
             render_sectorlines=render_sectorlines,
+            sector_sub=sector_sub,
+            sector_and=sector_and,
         )
         jinja_env.filters.update(
             geoms=geoms,
@@ -240,3 +242,11 @@ def coord2es(coord):
 def render_sectorlines(*lines):
     unique_lines = list(unique_everseen(chain(*lines)))
     return "\n".join(map(str, unique_lines))
+
+
+def sector_sub(a, b):
+    return [item for item in a if item not in b]
+
+
+def sector_and(a, b):
+    return [item for item in a if item in b]
