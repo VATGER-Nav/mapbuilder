@@ -11,6 +11,7 @@ from .data.sidstar import parse_sidstar
 from .dfs import datasets
 from .handlers.jinja import JinjaHandler
 from .handlers.plaintext import PlainTextHandler
+from .utils.geopackage import load_geopackage
 
 SUFFIXES = [".txt", ".jinja"]
 
@@ -67,6 +68,12 @@ class Builder:
                     "fixes": fixes,
                     "lines": sectors_to_lines(fixes),
                 }
+            elif data_source_type == "gpkg":
+                logging.debug(f"Loading GeoPackage source {data_source}...")
+                self.data[data_source] = load_geopackage(
+                    source_dir / config["data"][data_source]["source"],
+                    config["data"][data_source]["layers"]
+                )
             else:
                 logging.error(f"Unknown data source type for data source {data_source}")
 
