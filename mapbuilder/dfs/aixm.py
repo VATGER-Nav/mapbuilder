@@ -20,7 +20,7 @@ def get_dfs_aixm_datasets(cache: Cache) -> dict[int, dict[str, LeafItem]]:
             for ds in amdt.metadata.datasets:
                 for ld in get_leaf_datasets(ds):
                     available_datasets[amdt_idx][ld.name] = ld
-            logging.debug(f"Read {len(amdt.metadata.datasets)} DFS AIXM datasets")
+            logging.debug(f"Read {len(available_datasets[amdt_idx])} DFS AIXM datasets for amdt {amdt.amdt}")
     except ValueError:
         logging.exception("Cannot parse DFSDataset")
 
