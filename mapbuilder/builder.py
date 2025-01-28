@@ -8,7 +8,7 @@ from .data.kml import KMLParser
 from .data.rwy import parse_runway
 from .data.sectors import parse_sectors, sectors_to_lines
 from .data.sidstar import parse_sidstar
-from .dfs import aixm
+from .dfs import datasets
 from .handlers.jinja import JinjaHandler
 from .handlers.plaintext import PlainTextHandler
 
@@ -78,9 +78,9 @@ class Builder:
             amdt_id = int(amdt)
 
             if self.dfs_datasets is None:
-                self.dfs_datasets = aixm.get_dfs_aixm_datasets(self.cache)
+                self.dfs_datasets = datasets.get_dfs_datasets(self.cache)
 
-            url = aixm.get_dfs_aixm_url(self.dfs_datasets[amdt_id], amdt_id, leaf)
+            url = datasets.get_dfs_aixm_url(self.dfs_datasets[amdt_id], amdt_id, leaf)
             if url is None:
                 logging.error(f"Cannot get AIXM source URL for dataset {name}")
                 return {}
