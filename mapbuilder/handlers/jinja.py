@@ -103,7 +103,7 @@ def to_text_buffer(geometry, label: str, color: str, adapt_to_length=True):
         distance += 0.00001 * len(labeltext)
     buffer = shapely.buffer(point, distance).envelope.boundary
 
-    _render_polygon(lines, [buffer], color)
+    _render_polygon(lines, [buffer], color, False)
 
     return "\n".join(lines)
 
@@ -181,7 +181,7 @@ def envelope(geometries):
 def to_poly(geometries, designator: str, color: str | None = None, coordpoly=False):
     lines = [f"// {designator}"] if designator else []
 
-    _render_polygon(lines, _get_geoms(geometries), color)
+    _render_polygon(lines, _get_geoms(geometries), color, coordpoly)
 
     if coordpoly:
         lines.extend((f"COORDPOLY:{coordpoly}", ""))
@@ -189,13 +189,20 @@ def to_poly(geometries, designator: str, color: str | None = None, coordpoly=Fal
     return "\n".join(lines)
 
 
-def _render_polygon(lines, polygons, color=None):
-    for polygon in polygons:
-        if color is not None:
-            lines.append(f"COLOR:{color}")
-        else:
-            lines.append("")
+def _render_polygon(lines, polygons, color=None, coordpoly=False):
+    if not coordpoly and color is not None:
+        lines.append(f"COLOR:{color}")
+    else:
+        lines.append("")
 
+    for polygon in polygons:
+        if coordpoly:
+            if color is not None:
+                lines.append(f"COLOR:{color}")
+            else:
+                lines.append("")
+        else:
+            lines.append("COORDTYPE:OTHER:REGION")
         for point in polygon.coords:
             lines.append(f"COORD:{coord2es((point[0], point[1]))}")
 
