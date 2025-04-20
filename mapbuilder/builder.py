@@ -13,6 +13,7 @@ from .handlers.jinja import JinjaHandler
 from .handlers.plaintext import PlainTextHandler
 from .utils.geojson import load_geojson
 from .utils.geopackage import load_geopackage
+from .utils.json import load_json
 
 SUFFIXES = [".txt", ".jinja"]
 
@@ -82,6 +83,11 @@ class Builder:
                 src = self.__load(data_source, config["data"][data_source]["source"])
                 if src is not None:
                     self.data[data_source] = load_geojson(src)
+            elif data_source_type == "json":
+                logging.debug(f"Loading JSON source {data_source}...")
+                self.data[data_source] = load_json(
+                    source_dir / config["data"][data_source]["source"]
+                )
             else:
                 logging.error(f"Unknown data source type for data source {data_source}")
 
