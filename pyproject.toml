@@ -34,9 +34,6 @@ dev = [
     "lxml-stubs>=0.5,<0.6",
 ]
 
-[tool.uv]
-default-groups = "all"
-
 [tool.uv.build-backend]
 module-root = ""
 
