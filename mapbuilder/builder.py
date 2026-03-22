@@ -1,4 +1,5 @@
 import logging
+import time
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -140,6 +141,7 @@ class Builder:
             self.build_profile_map(profile_id, map_data)
 
     def build_profile_map(self, profile_id: str, map_data: dict):
+        start_ts = time.perf_counter()
         map_id = map_data["map"]
         target_file = map_data["target"]
         maps_root = self.source_dir / "maps" / map_id
@@ -165,7 +167,8 @@ class Builder:
         ) as tgt_file:
             tgt_file.write(profile_content)
 
-        logging.info(f"Built {map_id}.")
+        end_ts = time.perf_counter()
+        logging.info(f"Built {map_id} ({end_ts - start_ts:0.4f} sec).")
 
     def build_visitor(self, profile_id, rootdir, profile_contents):
         # Possibly inefficient, but we do not have a large number of files (hopefully)
