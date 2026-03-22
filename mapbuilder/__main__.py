@@ -12,15 +12,15 @@ from .builder import Builder
 def main(prog_name: str, *argv: str) -> int:
     argp = argparse.ArgumentParser(
         prog=Path(prog_name).name,
-        usage="%(prog)s [options] target_dir",
+        usage="%(prog)s [options] [target_dir]",
     )
-    argp.add_argument("target_dir", type=Path, help="Target directory")
+    argp.add_argument("target_dir", type=Path, default=Path(), help="Target directory (default: current directory)", nargs="?")
     argp.add_argument(
         "-s",
         "--source",
         type=Path,
-        default=Path(),
-        help="Source directory (default: current directory)",
+        default=Path() / "mapdata",
+        help="Source directory (default: ./mapdata)",
     )
     argp.add_argument(
         "-c",
