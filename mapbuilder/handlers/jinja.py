@@ -15,6 +15,7 @@ from mapbuilder.utils.ecl import draw_ecl_dashes, draw_loc_tick, draw_marker_tic
 from mapbuilder.utils.geo import brg, fix
 from mapbuilder.utils.jinja_fragment_cache import FragmentCacheExtension
 from mapbuilder.utils.sidstar import render_sid
+from mapbuilder.utils.topsky import ecl
 
 
 class JinjaHandler:
@@ -44,6 +45,7 @@ class JinjaHandler:
             render_sectorlines=render_sectorlines,
             sector_sub=sector_sub,
             sector_and=sector_and,
+            ecl=ecl,
         )
         jinja_env.filters.update(
             geoms=geoms,
