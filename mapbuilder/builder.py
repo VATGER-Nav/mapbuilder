@@ -86,7 +86,7 @@ class Builder:
             else:
                 logging.error(f"Unknown data source type for data source {data_source}")
 
-        self.jinja_handler = JinjaHandler(self.data, self.config)
+        self.jinja_handler = JinjaHandler(self.data, self.config, cache_dir)
 
     def __load(self, name: str, src: str):
         if src.startswith("dfs:"):

@@ -4,6 +4,7 @@ from pathlib import Path
 import numpy as np
 import shapely
 import shapely.ops
+from cachelib import FileSystemCache
 from jinja2 import Environment, FileSystemLoader
 from more_itertools import unique_everseen
 from shapely import Geometry, Polygon
@@ -12,17 +13,20 @@ from mapbuilder.data.aixm2 import AIXMFeature
 from mapbuilder.utils.ad import render_cl, render_runways
 from mapbuilder.utils.ecl import draw_ecl_dashes, draw_loc_tick, draw_marker_ticks
 from mapbuilder.utils.geo import brg, fix
+from mapbuilder.utils.jinja_fragment_cache import FragmentCacheExtension
 from mapbuilder.utils.sidstar import render_sid
 
 
 class JinjaHandler:
-    def __init__(self, data, config):
+    def __init__(self, data, config, cache_dir):
         self.data = data
         self.config = config
+        self.cache_dir = cache_dir
 
     def handle(self, item: Path) -> str:
         file_loader = FileSystemLoader(item.parent)
-        jinja_env = Environment(loader=file_loader)
+        jinja_env = Environment(loader=file_loader, extensions=[FragmentCacheExtension])
+        jinja_env.fragment_cache = FileSystemCache(self.cache_dir)
         jinja_env.globals.update(
             data=self.data,
             runways=self.config["runways"],
