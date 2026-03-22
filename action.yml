@@ -13,7 +13,7 @@ inputs:
     default: 'mapdata'
 runs:
   using: 'docker'
-  image: 'docker://ghcr.io/vatger-nav/mapbuilder:main'
+  image: 'docker://ghcr.io/vatger-nav/mapbuilder:v2'
   args:
     - '--debug'
     - '-s'
