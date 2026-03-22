@@ -1,28 +1,48 @@
-[tool.poetry]
+[project]
 name = "mapbuilder"
 version = "0.1.0"
 description = "A builder for GRPlugin and Topsky Maps"
-authors = ["Alex Legler <alex@a3li.li>"]
+authors = [{ name = "Alex Legler", email = "alex@a3li.li" }]
+requires-python = ">=3.11,<4,<3.16"
 license = "MIT"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+dependencies = [
+    "Jinja2>=3.1.6,<4",
+    "shapely>=2.1.2,<3",
+    "more-itertools>=10.8.0,<11",
+    "rich>=14.3.3,<15",
+    "lxml>=6.0.2,<7",
+    "fiona>=1.10.1,<2",
+    "pygeodesy>=26.2.26,<27",
+    "xmltodict>=1.0.4,<2",
+    "pydantic>=2.12.5,<3",
+    "cachelib>=0.13.0",
+]
 
-[tool.poetry.dependencies]
-python = "^3.11,<3.16"
-Jinja2 = "^3.1.6"
-shapely = "^2.1.2"
-more-itertools = "^10.8.0"
-rich = "^14.2.0"
-lxml = "^6.0.2"
-fiona = "^1.10.1"
-pygeodesy = "^25.10.10"
-xmltodict = "^1.0.2"
-pydantic = "^2.12.3"
+[project.scripts]
+mapbuilder = "mapbuilder.__main__:entry"
 
-[tool.poetry.scripts]
-mapbuilder = 'mapbuilder.__main__:entry'
+[dependency-groups]
+dev = [
+    "ruff==0.15.7",
+    "lxml-stubs>=0.5,<0.6",
+]
 
-[tool.poetry.group.dev.dependencies]
-ruff = "0.4.9"
-lxml-stubs = "^0.5"
+[tool.uv]
+default-groups = "all"
+
+[tool.uv.build-backend]
+module-root = ""
+
+[build-system]
+requires = ["uv_build>=0.10.12,<0.11.0"]
+build-backend = "uv_build"
 
 [tool.ruff]
 line-length = 100
@@ -55,7 +75,3 @@ select = [
     "FURB",  # refurb
 ]
 ignore = ["COM812", "C901"]
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
