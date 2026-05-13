@@ -1,6 +1,8 @@
+import re
 from itertools import chain
 from pathlib import Path
 
+import fiona
 import numpy as np
 import shapely
 import shapely.ops
@@ -9,10 +11,18 @@ from jinja2 import Environment, FileSystemLoader
 from more_itertools import unique_everseen
 from shapely import Geometry, Polygon
 
+import mapbuilder
 from mapbuilder.data.aixm2 import AIXMFeature
 from mapbuilder.utils.ad import render_cl, render_runways
 from mapbuilder.utils.ecl import draw_ecl_dashes, draw_loc_tick, draw_marker_ticks
 from mapbuilder.utils.geo import brg, fix
+from mapbuilder.utils.jinja_filters import (
+    _coords,
+    feat_exclude_property,
+    geom_filter_min_area,
+    render_area,
+    render_line,
+)
 from mapbuilder.utils.jinja_fragment_cache import FragmentCacheExtension
 from mapbuilder.utils.sidstar import render_sid
 from mapbuilder.utils.topsky import ecl
@@ -59,6 +69,14 @@ class JinjaHandler:
             to_text=to_text,
             to_text_buffer=to_text_buffer,
             to_symbol=to_symbol,
+            # NEW API
+            render_area=render_area,
+            render_line=render_line,
+            feat_exclude_property=feat_exclude_property,
+            geom_raw_coords=_coords,
+            geom_simplify=mapbuilder.utils.jinja_filters.geom_simplify,
+            geom_join=mapbuilder.utils.jinja_filters.geom_join,
+            geom_filter_min_area=mapbuilder.utils.jinja_filters.geom_filter_min_area,
         )
 
         return jinja_env.get_template(item.name).render()
@@ -153,6 +171,8 @@ def _get_geoms(thing):
         return [thing.exterior]
     elif isinstance(thing, shapely.geometry.base.GeometrySequence | np.ndarray):
         return thing
+    elif isinstance(thing, fiona.Feature):
+        return [shapely.geometry.shape(thing.geometry)]
     else:
         return []
 
@@ -209,8 +229,13 @@ def _render_polygon(lines, polygons, color=None, coordpoly=False):
                 lines.append("")
         else:
             lines.append("COORDTYPE:OTHER:REGION")
-        for point in polygon.coords:
-            lines.append(f"COORD:{coord2es((point[0], point[1]))}")
+
+        if isinstance(polygon, Polygon):
+            for point in polygon.exterior.coords:
+                lines.append(f"COORD:{coord2es((point[1], point[0]))}")
+        else:
+            for point in polygon.coords:
+                lines.append(f"COORD:{coord2es((point[0], point[1]))}")
 
 
 def _render_coords(lines, linestring):
