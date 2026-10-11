@@ -7,3 +7,5 @@ __pycache__/
 /.direnv
 /.ruff_cache
 /result*
+/.venv
+/.vscode
