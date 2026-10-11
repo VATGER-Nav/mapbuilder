@@ -65,7 +65,7 @@ class JinjaHandler:
             to_text=to_text,
             to_text_buffer=to_text_buffer,
             to_symbol=to_symbol,
-            # Feature API (see mapbuilder.utils.jinja_filters)
+            # v2.1 Feature API (see mapbuilder.utils.jinja_filters)
             feat_where=jinja_filters.feat_where,
             feat_exclude=jinja_filters.feat_exclude,
             feat_select_geometry=jinja_filters.feat_select_geometry,
