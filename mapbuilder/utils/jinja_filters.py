@@ -146,7 +146,7 @@ def render_grp(things, area: str = "OTHER:REGION", lines: str = "line", symbol: 
         else:
             result.extend(_symbol_statements(feature, part, symbol))
 
-    return "\n".join(result)
+    return _statements(result)
 
 
 def render_ts(things, fill: int | str = 100, symbol: str | None = None, label: str | None = None) -> str:
@@ -165,7 +165,7 @@ def render_ts(things, fill: int | str = 100, symbol: str | None = None, label: s
         else:
             result.extend(_symbol_statements(feature, part, symbol))
 
-    return "\n".join(result)
+    return _statements(result)
 
 
 def render_area(things, area_def: str, label: str | None = None) -> str:
@@ -177,7 +177,7 @@ def render_area(things, area_def: str, label: str | None = None) -> str:
     for feature, part in _rendered_parts(things, LINE_TYPES, "area"):
         lines.extend(_area_block(feature, part, area_def))
 
-    return "\n".join(lines)
+    return _statements(lines)
 
 
 def render_line(things, label: str | None = None) -> str:
@@ -189,7 +189,7 @@ def render_line(things, label: str | None = None) -> str:
     for _, part in _rendered_parts(things, LINE_TYPES, "line"):
         lines.extend(_line_statements(part))
 
-    return "\n".join(lines)
+    return _statements(lines)
 
 
 def render_polyline(things, line_def: str = "OTHER:POLYLINE", label: str | None = None) -> str:
@@ -201,7 +201,7 @@ def render_polyline(things, line_def: str = "OTHER:POLYLINE", label: str | None 
     for _, part in _rendered_parts(things, LINE_TYPES, "line"):
         lines.extend(_polyline_block(part, line_def))
 
-    return "\n".join(lines)
+    return _statements(lines)
 
 
 def render_coordline(things, label: str | None = None) -> str:
@@ -213,7 +213,7 @@ def render_coordline(things, label: str | None = None) -> str:
     for _, part in _rendered_parts(things, LINE_TYPES, "line"):
         lines.extend(_coordline_block(part))
 
-    return "\n".join(lines)
+    return _statements(lines)
 
 
 def render_coordpoly(things, fill: int | str, label: str | None = None, color: str | None = None) -> str:
@@ -229,7 +229,7 @@ def render_coordpoly(things, fill: int | str, label: str | None = None, color: s
     for feature, part in _rendered_parts(things, LINE_TYPES, "polygon"):
         lines.extend(_coordpoly_block(feature, part, fill))
 
-    return "\n".join(lines)
+    return _statements(lines)
 
 
 def render_coords(things) -> str:
@@ -261,7 +261,7 @@ def render_symbol(things, symbol: str, text: str | None = None, prop: str | None
             line += f":{label}:{offset[0]}:{offset[1]}"
         lines.append(line)
 
-    return "\n".join(lines)
+    return _statements(lines)
 
 
 def render_text(things, text: str | None = None, prop: str | None = None, offset: tuple[int, int] | None = None,
@@ -287,7 +287,7 @@ def render_text(things, text: str | None = None, prop: str | None = None, offset
         if label is not None:
             lines.append(f"{keyword}:{_coord2es(point.coords[0])}:{label}{suffix}")
 
-    return "\n".join(lines)
+    return _statements(lines)
 
 
 # Deprecated
@@ -441,6 +441,12 @@ def _label(feature: Feature, text: str | None, prop: str | None) -> str | None:
         logging.warning(f"Label {label!r} of {_describe(feature)} contains colons, replacing them with spaces")
         label = label.replace(":", " ")
     return label
+
+
+def _statements(lines: list[str]) -> str:
+    """Joins rendered lines, ending with a newline so that consecutive outputs stay on separate lines (even with
+    Jinja whitespace control like ``-}}``)."""
+    return "\n".join(lines) + "\n" if lines else ""
 
 
 def _rings(part: BaseGeometry) -> list:
