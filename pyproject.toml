@@ -3,7 +3,7 @@ name = "mapbuilder"
 version = "0.1.0"
 description = "A builder for GRPlugin and Topsky Maps"
 authors = [{ name = "Alex Legler", email = "alex@a3li.li" }]
-requires-python = ">=3.11,<4,<3.16"
+requires-python = ">=3.11,<4,<3.18"
 license = "MIT"
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -22,7 +22,7 @@ dependencies = [
     "pygeodesy>=26.2.26,<27",
     "xmltodict>=1.0.4,<2",
     "pydantic>=2.12.5,<3",
-    "cachelib>=0.13.0",
+    "cachelib>=0.17.0",
 ]
 
 [project.scripts]
@@ -30,8 +30,9 @@ mapbuilder = "mapbuilder.__main__:entry"
 
 [dependency-groups]
 dev = [
-    "ruff==0.15.7",
+    "ruff==0.17.0",
     "lxml-stubs>=0.5,<0.6",
+    "zensical>=0.0.69",
 ]
 
 [tool.uv.build-backend]
@@ -43,7 +44,7 @@ build-backend = "uv_build"
 
 [tool.ruff]
 line-length = 120
-target-version = "py311"
+target-version = "py317"
 preview = true
 
 [tool.ruff.lint]
