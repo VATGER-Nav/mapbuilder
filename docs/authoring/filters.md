@@ -150,3 +150,24 @@ result keeps only the properties shared by all input features.
 ```jinja
 {{ data.eddm['TaxiwayElement'] | feat_union | feat_simplify(default) | render_area('OTHER:REGION') }}
 ```
+
+### `feat_text_box`
+
+```jinja
+things | feat_text_box(text=None, prop=None, size=0.00008, per_char=0.00001)
+```
+
+Creates a square box around each label point, for example as a background behind a taxiway label.
+The box extends `size` degrees from the point in each direction, plus `per_char` degrees for every
+character of the label, given as a fixed `text` or the name of a property with `prop`. For lines
+and areas, a point inside the geometry is used, like for [`render_text`](rendering.md#render_text).
+
+```jinja
+{% for name, label in data.eddp_kml['TWYDesig'].items() %}
+    {{- label | feat_text_box(text=name) | render_area('OTHER:REGION', color='taxiway') }}
+{% endfor %}
+COLOR:labels-twy
+{% for name, label in data.eddp_kml['TWYDesig'].items() %}
+    {{- label | render_text(text=name) }}
+{% endfor %}
+```

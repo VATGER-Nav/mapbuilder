@@ -48,12 +48,12 @@ The `geom_raw_coords` loop is replaced by a single filter:
 | `filter_smaller_than` | [`feat_min_area`](filters.md#feat_min_area) (see below) |
 | `combine` | [`feat_union`](filters.md#feat_union) |
 | `to_line` | [`render_line`](rendering.md#render_line) |
-| `to_poly(name, color)` | `COLOR:` line + [`render_area('OTHER:REGION', name)`](rendering.md#render_area) |
+| `to_poly(name, color)` | [`render_area('OTHER:REGION', name, color=color)`](rendering.md#render_area) |
 | `to_poly(name, color, fill)` | [`render_coordpoly(fill, name, color)`](rendering.md#render_coordpoly) |
 | `to_coordline` | [`render_coordline`](rendering.md#render_coordline) |
 | `to_symbol` | [`render_symbol`](rendering.md#render_symbol) |
 | `to_text` | [`render_text`](rendering.md#render_text) |
-| `to_text_buffer` | no equivalent yet |
+| `to_text_buffer(name, color, True)` | [`feat_text_box(text=name)`](filters.md#feat_text_box) + `render_area('OTHER:REGION', color=color)` |
 
 Differences to be aware of:
 
@@ -107,7 +107,16 @@ To use the Feature API with full access to properties, use these source types:
     The older filters cannot read data from `kml2` sources. When you change a source from `kml` to
     `kml2`, migrate all templates that use it at the same time.
 
-    Data from `aixm` sources stays on the older filters.
+    Data from `aixm` and `aixm2` sources is best switched to `aixm51`. Data is then organised by AIXM
+    feature type, so templates change a little:
+
+    | Older | `aixm51` |
+    |---|---|
+    | `data.x['GuidanceLine'].items()` | `data.x['GuidanceLine']` (a list; the feature ID is `feature.id`) |
+    | `data.x['GuidanceLineByDesig']['A']` | `data.x.group('GuidanceLine', 'designator')['A']` |
+    | `data.x['VerticalStructureByName']['N']` | `data.x.group('VerticalStructure', 'name')['N']` |
+    | `data.x['RunwayElement']['<uuid>']` | `data.x.find('<uuid>')` |
+    | `line.type`, `geom.marking_location` | `line.properties.type`, `geom.properties.markingLocation` |
 
 When switching from `kml` to `kml2`, the structure of the data stays the same: folders are dicts and
 placemark names map to lists. Two things change:

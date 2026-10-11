@@ -118,6 +118,25 @@ def feat_union(things) -> list[Feature]:
     return [_merge(features, shapely.union_all(geometries))]
 
 
+def feat_text_box(things, text: str | None = None, prop: str | None = None, size: float = 0.00008,
+                  per_char: float = 0.00001) -> list[Feature]:
+    """Creates a square box around each label point, e.g. as background for a TEXT label. The box extends ``size``
+    degrees from the point, plus ``per_char`` degrees per character of the label (``text`` or property ``prop``).
+    """
+    if text is not None and prop is not None:
+        msg = "feat_text_box takes either text or prop"
+        raise MapbuilderException(msg)
+
+    boxes = []
+    for feature, point in _anchor_points(things):
+        label = _label(feature, text, prop) if text is not None or prop is not None else ""
+        if label is None:
+            continue
+        box = shapely.buffer(point, size + per_char * len(label)).envelope
+        boxes.append(feature.with_geometry(box))
+    return boxes
+
+
 # Rendering
 
 # Fill patterns of GRP COORDTYPE regions and TopSky COORDPOLY: percentages or GDI+ hatch styles

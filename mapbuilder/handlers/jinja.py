@@ -79,6 +79,7 @@ class JinjaHandler:
             feat_join=jinja_filters.feat_join,
             feat_join_by=jinja_filters.feat_join_by,
             feat_union=jinja_filters.feat_union,
+            feat_text_box=jinja_filters.feat_text_box,
             render_grp=jinja_filters.render_grp,
             render_ts=jinja_filters.render_ts,
             render_area=jinja_filters.render_area,
