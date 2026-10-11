@@ -17,6 +17,7 @@ from .data.sidstar import parse_sidstar
 from .dfs import datasets
 from .handlers.jinja import JinjaHandler
 from .handlers.plaintext import PlainTextHandler
+from .render_context import RenderContext, use_render_context
 from .utils.geojson import load_geojson
 
 SUFFIXES = [".txt", ".jinja"]
@@ -29,6 +30,7 @@ class Builder:
         self.target_dir = target_dir
         self.cache = Cache(cache_dir)
         self.config = config
+        self.render_context = RenderContext.from_config(config.get("render", {}))
 
         self.data = {}
         self.dfs_datasets = None
@@ -181,7 +183,8 @@ class Builder:
 
         profile_contents = [header]
 
-        self.build_visitor(profile_id, maps_root, profile_contents)
+        with use_render_context(self.render_context):
+            self.build_visitor(profile_id, maps_root, profile_contents)
 
         profile_content = "\n\n".join(profile_contents)
 

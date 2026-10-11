@@ -15,8 +15,10 @@ from shapely import Geometry, Polygon
 
 from mapbuilder.data.aixm2 import AIXMFeature
 from mapbuilder.data.feature import Feature
+from mapbuilder.render_context import current_render_context
 from mapbuilder.utils import jinja_filters
 from mapbuilder.utils.ad import render_cl, render_runways
+from mapbuilder.utils.coords import format_coord
 from mapbuilder.utils.ecl import draw_ecl_dashes, draw_loc_tick, draw_marker_ticks
 from mapbuilder.utils.geo import brg, fix
 from mapbuilder.utils.jinja_fragment_cache import FragmentCacheExtension
@@ -34,6 +36,8 @@ class JinjaHandler:
         file_loader = FileSystemLoader(item.parent)
         jinja_env = Environment(loader=file_loader, extensions=[FragmentCacheExtension])
         jinja_env.fragment_cache = FileSystemCache(self.cache_dir)
+        # Cached fragments depend on the render settings, e.g. coordinate precision
+        jinja_env.fragment_cache_prefix = f"{current_render_context().cache_key}:"
         jinja_env.globals.update(
             data=self.data,
             runways=self.config["runways"],
@@ -271,7 +275,7 @@ def _render_polygon(lines, polygons, color=None, coordpoly=False):
 def _render_coords(lines, linestring):
     for geometry in linestring:
         for point in geometry.coords:
-            lines.append(f"COORD:{point[0]}:{point[1]}")
+            lines.append(f"COORD:{format_coord(point[0], point[1])}")
 
         lines.append("")
 
@@ -304,7 +308,7 @@ def join_segments(lines):
 
 
 def coord2es(coord):
-    return f"{coord[0]}:{coord[1]}"
+    return format_coord(coord[0], coord[1])
 
 
 def render_sectorlines(*lines):

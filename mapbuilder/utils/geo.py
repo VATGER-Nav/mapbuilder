@@ -1,5 +1,7 @@
 from pygeodesy import ellipsoidalExact as geo_model
 
+from mapbuilder.utils.coords import format_coord
+
 NM_IN_METERS = 1852
 
 
@@ -12,7 +14,7 @@ def brg(definition):
 
 
 def coord2es(coord: geo_model.LatLon):
-    return f"{coord.lat}:{coord.lon}"
+    return format_coord(coord.lat, coord.lon)
 
 
 def back_bearing(bearing: float) -> float:

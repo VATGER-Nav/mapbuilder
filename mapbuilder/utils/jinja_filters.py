@@ -28,6 +28,7 @@ from shapely.ops import linemerge
 
 from mapbuilder import MapbuilderException
 from mapbuilder.data.feature import Feature
+from mapbuilder.utils.coords import format_coord
 
 # Selecting features
 
@@ -461,4 +462,4 @@ def _describe(feature: Feature) -> str:
 
 
 def _coord2es(coord):
-    return f"{coord[0]}:{coord[1]}"
+    return format_coord(coord[0], coord[1])
