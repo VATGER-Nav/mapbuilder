@@ -1,3 +1,5 @@
+import functools
+import logging
 import re
 from itertools import chain
 from pathlib import Path
@@ -11,18 +13,12 @@ from jinja2 import Environment, FileSystemLoader
 from more_itertools import unique_everseen
 from shapely import Geometry, Polygon
 
-import mapbuilder
 from mapbuilder.data.aixm2 import AIXMFeature
+from mapbuilder.data.feature import Feature
+from mapbuilder.utils import jinja_filters
 from mapbuilder.utils.ad import render_cl, render_runways
 from mapbuilder.utils.ecl import draw_ecl_dashes, draw_loc_tick, draw_marker_ticks
 from mapbuilder.utils.geo import brg, fix
-from mapbuilder.utils.jinja_filters import (
-    _coords,
-    feat_exclude_property,
-    geom_filter_min_area,
-    render_area,
-    render_line,
-)
 from mapbuilder.utils.jinja_fragment_cache import FragmentCacheExtension
 from mapbuilder.utils.sidstar import render_sid
 from mapbuilder.utils.topsky import ecl
@@ -69,17 +65,49 @@ class JinjaHandler:
             to_text=to_text,
             to_text_buffer=to_text_buffer,
             to_symbol=to_symbol,
-            # NEW API
-            render_area=render_area,
-            render_line=render_line,
-            feat_exclude_property=feat_exclude_property,
-            geom_raw_coords=_coords,
-            geom_simplify=mapbuilder.utils.jinja_filters.geom_simplify,
-            geom_join=mapbuilder.utils.jinja_filters.geom_join,
-            geom_filter_min_area=mapbuilder.utils.jinja_filters.geom_filter_min_area,
+            # Feature API (see mapbuilder.utils.jinja_filters)
+            feat_where=jinja_filters.feat_where,
+            feat_exclude=jinja_filters.feat_exclude,
+            feat_select_geometry=jinja_filters.feat_select_geometry,
+            feat_min_area=jinja_filters.feat_min_area,
+            feat_simplify=jinja_filters.feat_simplify,
+            feat_explode=jinja_filters.feat_explode,
+            feat_join=jinja_filters.feat_join,
+            feat_join_by=jinja_filters.feat_join_by,
+            feat_union=jinja_filters.feat_union,
+            render_grp=jinja_filters.render_grp,
+            render_ts=jinja_filters.render_ts,
+            render_area=jinja_filters.render_area,
+            render_line=jinja_filters.render_line,
+            render_polyline=jinja_filters.render_polyline,
+            render_coords=jinja_filters.render_coords,
+            render_coordline=jinja_filters.render_coordline,
+            render_coordpoly=jinja_filters.render_coordpoly,
+            render_symbol=jinja_filters.render_symbol,
+            render_text=jinja_filters.render_text,
+            # Deprecated names of the feature API
+            feat_exclude_property=_deprecated(jinja_filters.feat_exclude, "feat_exclude_property", "feat_exclude"),
+            geom_raw_coords=_deprecated(jinja_filters.raw_coords, "geom_raw_coords", "render_coords or render_area"),
+            geom_simplify=_deprecated(jinja_filters.feat_simplify, "geom_simplify", "feat_simplify"),
+            geom_join=_deprecated(jinja_filters.feat_join, "geom_join", "feat_join"),
+            geom_filter_min_area=_deprecated(jinja_filters.feat_min_area, "geom_filter_min_area", "feat_min_area"),
         )
 
         return jinja_env.get_template(item.name).render()
+
+
+def _deprecated(fn, old: str, new: str):
+    @functools.wraps(fn)
+    def wrapper(*args, **kwargs):
+        _warn_deprecated(old, new)
+        return fn(*args, **kwargs)
+
+    return wrapper
+
+
+@functools.cache
+def _warn_deprecated(old: str, new: str):
+    logging.warning(f"Jinja filter '{old}' is deprecated, use '{new}'")
 
 
 def geoms(features: list[AIXMFeature] | AIXMFeature) -> list[Geometry]:
@@ -173,6 +201,8 @@ def _get_geoms(thing):
         return thing
     elif isinstance(thing, fiona.Feature):
         return [shapely.geometry.shape(thing.geometry)]
+    elif isinstance(thing, Feature):
+        return [thing.geometry]
     else:
         return []
 
