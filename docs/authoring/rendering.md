@@ -83,10 +83,11 @@ COLOR:River
 ### `render_area`
 
 ```jinja
-things | render_area(area_def, label=None)
+things | render_area(area_def, label=None, color=None)
 ```
 
-**GRP.** Renders each polygon as a `COORDTYPE:<area_def>` line followed by its `COORD` lines.
+**GRP.** Renders each polygon as a `COORDTYPE:<area_def>` line followed by its `COORD` lines. If
+`color` is given, a `COLOR:` line is written first.
 
 `area_def` is everything after `COORDTYPE:` and follows the GRP syntax
 `AreaType:DrawType[:HatchType[:FillType]]`:

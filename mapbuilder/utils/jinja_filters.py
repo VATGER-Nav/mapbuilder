@@ -168,11 +168,14 @@ def render_ts(things, fill: int | str = 100, symbol: str | None = None, label: s
     return _statements(result)
 
 
-def render_area(things, area_def: str, label: str | None = None) -> str:
+def render_area(things, area_def: str, label: str | None = None, color: str | None = None) -> str:
     """
-    (GRP) Render areas with COORDTYPE/COORD, one block per polygon. Holes are not supported.
+    (GRP) Render areas with COORDTYPE/COORD, one block per polygon, preceded by a COLOR line if ``color`` is given.
+    Holes are not supported.
     """
     lines = [f"// {label}"] if label else []
+    if color is not None:
+        lines.append(f"COLOR:{color}")
 
     for feature, part in _rendered_parts(things, LINE_TYPES, "area"):
         lines.extend(_area_block(feature, part, area_def))
