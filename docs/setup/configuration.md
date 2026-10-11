@@ -103,8 +103,11 @@ These types produce [features](../authoring/data.md) for the Feature API:
     | Setting | Description |
     |---|---|
     | `source` | Path to the `.gpkg` file |
-    | `layers` | List of layer names to load |
+    | `layers` | List of layer names to load (optional, defaults to all feature layers) |
     | `id_property` | Property used as feature ID (optional, defaults to the GeoPackage feature ID) |
+
+    Layers must use the WGS 84 coordinate system (EPSG:4326), the default in QGIS for new
+    GeoPackages. Layers in other coordinate systems stop the build with an error.
 
 `kml2`
 :   KML file.

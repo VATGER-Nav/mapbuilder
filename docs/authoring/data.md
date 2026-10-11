@@ -97,11 +97,12 @@ other features are available in `feature.links`.
 [data.eddm_stands]
 type = "gpkg"
 source = "gis/EDDM-stands.gpkg"
-layers = ["EDDM-stands"]
+layers = ["EDDM-stands"]      # optional, defaults to all layers in the file
 id_property = "designator"   # optional, defaults to the GeoPackage feature ID
 ```
 
-Each layer is a dict of features by ID. The ID comes from `id_property` if set:
+Each layer is a dict of features by ID. The ID comes from `id_property` if set, otherwise it is
+the feature ID as a string (`'1'`, `'2'`, …):
 
 ```jinja
 {% set stands = data.eddm_stands['EDDM-stands'] %}
@@ -112,7 +113,13 @@ STAND:EDDM:101
 {{ data.eddm_gis['aprons'] | render_area('OTHER:REGION') }}
 ```
 
-The feature `type` is the layer name, and `feat_where('id', …)` matches the `id_property` value.
+The feature `type` is the layer name, its properties are the columns of the layer, and
+`feat_where('id', …)` matches the `id_property` value.
+
+!!! warning "Coordinate system and IDs"
+
+    Layers must use WGS 84 (EPSG:4326); other coordinate systems stop the build with an error.
+    If several features of a layer share an ID, the last one is used and a warning is logged.
 
 ### KML (`kml2`)
 

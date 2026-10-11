@@ -100,7 +100,7 @@ class Builder:
                 logging.debug(f"Loading GeoPackage source {data_source}...")
                 self.data[data_source] = parse_gpkg(
                     source_dir / config["data"][data_source]["source"],
-                    config["data"][data_source]["layers"],
+                    config["data"][data_source].get("layers"),
                     config["data"][data_source].get("id_property", None),
                 )
             elif data_source_type == "geojson":
