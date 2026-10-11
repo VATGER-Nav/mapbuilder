@@ -43,6 +43,7 @@ These source types produce features for the Feature API:
 |---|---|---|
 | `aixm51` | AIXM 5.1 AerodromeMapping data | `data.eddm['GuidanceLine']`, `data.eddm.group(…)` |
 | `gpkg` | GeoPackage layers | `data.eddm_stands['EDDM-stands']['101']` |
+| `geojson` | GeoJSON files | `data.mva['487']` |
 | `kml2` | KML files | `data.eddp_kml['Construction']['M']` |
 
 Data from `aixm2` sources also works with the Feature API. The older `aixm` and `kml` types are meant
@@ -120,6 +121,36 @@ The feature `type` is the layer name, its properties are the columns of the laye
 
     Layers must use WGS 84 (EPSG:4326); other coordinate systems stop the build with an error.
     If several features of a layer share an ID, the last one is used and a warning is logged.
+
+### GeoJSON (`geojson`)
+
+```toml title="mapbuilder.toml"
+[data.mva]
+type = "geojson"
+source = "dfs:1:ED MVA:GeoJSON"   # or a path or URL to a GeoJSON file
+id_property = "IDENT"             # optional
+```
+
+The source is a dict of features by ID. The ID comes from `id_property` if set, otherwise from the
+`id` of each feature, or its position in the file (`'1'`, `'2'`, …) if it has none.
+
+```jinja
+{{ data.mva['487'] | render_coordline('MVA 487') }}
+
+{% for area in data.mva.values() if area.properties.LEVEL == 'LOWER' %}
+    {{- area | render_coordline(area.properties.NAME) }}
+{% endfor %}
+```
+
+The properties are the `properties` of each GeoJSON feature. The feature `type` is the `name` of
+the FeatureCollection if the file has one. Files containing a single feature or a bare geometry are
+loaded as a dict with one feature.
+
+!!! warning "Coordinate system and IDs"
+
+    GeoJSON coordinates are always WGS 84 (EPSG:4326); files declaring another coordinate system
+    stop the build with an error. If several features share an ID, the last one is used and a
+    warning is logged.
 
 ### KML (`kml2`)
 

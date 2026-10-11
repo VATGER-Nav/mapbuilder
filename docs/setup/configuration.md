@@ -109,6 +109,17 @@ These types produce [features](../authoring/data.md) for the Feature API:
     Layers must use the WGS 84 coordinate system (EPSG:4326), the default in QGIS for new
     GeoPackages. Layers in other coordinate systems stop the build with an error.
 
+`geojson`
+:   GeoJSON file.
+
+    | Setting | Description |
+    |---|---|
+    | `source` | Path, URL or DFS dataset |
+    | `id_property` | Property used as feature ID (optional, defaults to the `id` of each feature, or its position in the file) |
+
+    Coordinates must be WGS 84 (EPSG:4326), as required by the GeoJSON standard. Files declaring
+    another coordinate system stop the build with an error.
+
 `kml2`
 :   KML file.
 
@@ -126,9 +137,6 @@ These types are used with the older template filters or for special purposes:
 `kml`
 :   KML file as plain geometries. Settings: `source`, `root` (optional; if the folder does not exist,
     the whole file is used).
-
-`geojson`
-:   GeoJSON file as a geometry. Setting: `source`.
 
 `raw`
 :   Text file inserted as-is, e.g. `{{ data.mva }}`. Setting: `source`. Read as ISO-8859-1.

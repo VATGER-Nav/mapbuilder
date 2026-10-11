@@ -8,6 +8,7 @@ import mapbuilder.data.aixm
 from .cache import Cache
 from .data.aixm2 import parse_aixm
 from .data.aixm51 import parse_aixm as parse_aixm51
+from .data.geojson import parse_geojson
 from .data.gpkg import parse_gpkg
 from .data.kml import KMLParser
 from .data.kml2 import parse_kml
@@ -18,7 +19,6 @@ from .dfs import datasets
 from .handlers.jinja import JinjaHandler
 from .handlers.plaintext import PlainTextHandler
 from .render_context import RenderContext, use_render_context
-from .utils.geojson import load_geojson
 
 SUFFIXES = [".txt", ".jinja"]
 
@@ -108,7 +108,7 @@ class Builder:
 
                 src = self.__load(data_source, config["data"][data_source]["source"])
                 if src is not None:
-                    self.data[data_source] = load_geojson(src)
+                    self.data[data_source] = parse_geojson(src, config["data"][data_source].get("id_property"))
             else:
                 logging.error(f"Unknown data source type for data source {data_source}")
 
