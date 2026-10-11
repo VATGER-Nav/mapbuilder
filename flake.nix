@@ -129,6 +129,11 @@
               {
                 default = pkgs.mkShell {
                   packages = commonPackages;
+                  shellHook = ''
+                    export REPO_ROOT=$(git rev-parse --show-toplevel)
+                    # Stable interpreter path for editors (VS Code etc.)
+                    ln -sfn ${virtualenv} "$REPO_ROOT/.venv"
+                  '';
                   env = {
                     # Don't create venv using uv
                     UV_NO_SYNC = "1";
