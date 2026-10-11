@@ -7,8 +7,10 @@ import mapbuilder.data.aixm
 
 from .cache import Cache
 from .data.aixm2 import parse_aixm
+from .data.aixm51 import parse_aixm as parse_aixm51
 from .data.gpkg import parse_gpkg
 from .data.kml import KMLParser
+from .data.kml2 import parse_kml
 from .data.rwy import parse_runway
 from .data.sectors import parse_sectors, sectors_to_lines
 from .data.sidstar import parse_sidstar
@@ -44,6 +46,12 @@ class Builder:
                 src = self.__load(data_source, config["data"][data_source]["source"])
                 if src is not None:
                     self.data[data_source] = mapbuilder.data.aixm.parse_aixm(src)
+            elif data_source_type == "aixm51":
+                logging.debug(f"Loading AIXM 5.1 source {data_source}...")
+
+                src = self.__load(data_source, config["data"][data_source]["source"])
+                if src is not None:
+                    self.data[data_source] = parse_aixm51(src)
             elif data_source_type == "kml":
                 logging.debug(f"Loading KML source {data_source}...")
                 data_root = None
@@ -53,6 +61,12 @@ class Builder:
                     source_dir / config["data"][data_source]["source"], data_root
                 )
                 self.data[data_source] = parser.parse()
+            elif data_source_type == "kml2":
+                logging.debug(f"Loading KML source {data_source} as features...")
+                self.data[data_source] = parse_kml(
+                    source_dir / config["data"][data_source]["source"],
+                    config["data"][data_source].get("root"),
+                )
             elif data_source_type == "raw":
                 logging.debug(f"Loading raw source {data_source}...")
                 with (source_dir / config["data"][data_source]["source"]).open(

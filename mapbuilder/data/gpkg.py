@@ -2,10 +2,10 @@ from pathlib import Path
 
 import fiona
 from shapely.geometry import shape
-from shapely.geometry.geo import mapping
 from shapely.ops import transform
 
 from mapbuilder import MapbuilderException
+from mapbuilder.data.feature import Feature
 
 
 def swap_xy(x, y, z=None):
@@ -21,7 +21,7 @@ def parse_gpkg(filename: Path, layers: list[str], id_property: str | None) -> di
         id_property (str, optional): Name of the ID property. Defaults to "fid".
 
     Returns:
-        dict: Dictionary mapping layer names to parsed data.
+        dict: Dictionary mapping layer names to their features by ID.
     """
     data = {}
     for layer in layers:
@@ -36,9 +36,9 @@ def parse_gpkg(filename: Path, layers: list[str], id_property: str | None) -> di
                 except KeyError as e:
                     raise MapbuilderException(f"Feature {feature} is missing ID", file=filename) from e
 
-                geom = shape(feature["geometry"])
-                swapped = transform(lambda x, y, z=None: swap_xy(x, y, z), geom)
-                feature["geometry"] = mapping(swapped)
+                geometry = None
+                if feature.geometry is not None:
+                    geometry = transform(lambda x, y, z=None: swap_xy(x, y, z), shape(feature.geometry))
 
-                data[layer][feature_id] = feature
+                data[layer][feature_id] = Feature(str(feature_id), layer, dict(feature.properties), geometry)
     return data
